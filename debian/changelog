@@ -1,0 +1,5 @@
+multitouch (0.1) unstable; urgency=low
+
+  * Add multitouch Xorg input driver
+
+ -- Henrik Rydberg <rydberg@euromail.se>  Mon, 03 Nov 2008 00:47:37 +0100

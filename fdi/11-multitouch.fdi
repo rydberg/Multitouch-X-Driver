@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<deviceinfo version="0.2">
+
+  <device>
+    <match key="platform.id" contains="applesmc">
+     <spawn udi="/org/freedesktop/Hal/devices/applesmc_keyboard_backlight"/>
+<!--
+     <spawn udi="/org/freedesktop/Hal/devices/applesmc_light_sensor"/>
+-->
+    </match>
+  </device>
+
+  <device>
+    <match key="info.udi" string="/org/freedesktop/Hal/devices/applesmc_keyboard_backlight">
+      <append key="info.capabilities" type="strlist">keyboard_backlight</append>
+      <merge key="info.product" type="string">Applesmc Keyboard Backlight</merge>
+      <merge key="keyboard_backlight.num_levels" type="int">256</merge>
+      <merge key="keyboard_backlight.access_method" type="string">custom</merge>
+      <merge key="linux.sysfs_path" type="string">/sys/class/leds/smc::kbd_backlight</merge>
+      <append key="info.addons" type="strlist">hald-addon-generic-kbd-backlight</append>
+    </match>
+  </device>
+
+<!--
+  <device>
+    <match key="info.udi" string="/org/freedesktop/Hal/devices/applesmc_light_sensor">
+      <append key="info.capabilities" type="strlist">light_sensor</append>
+      <merge key="info.product" type="string">Applesmc Light Sensor</merge>
+      <merge key="light_sensor.num_sensors" type="int">1</merge>
+      <merge key="light_sensor.num_levels" type="int">64</merge>
+      <append key="light_sensor.sensor_locations" type="strlist">left</append>
+      <merge key="light_sensor.access_method" type="string">custom</merge>
+      <merge key="linux.sysfs_path" type="string">/sys/devices/platform/applesmc.768/light</merge>
+      <append key="info.addons" type="strlist">hald-addon-generic-light-sensor</append>
+    </match>
+  </device>
+-->
+
+</deviceinfo>

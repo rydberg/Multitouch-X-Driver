@@ -1,0 +1,14 @@
+Source: multitouch
+Section: misc
+Priority: optional
+Maintainer: Henrik Rydberg <rydberg@euromail.se>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+Homepage: http://web.comhem.se/rydberg/Bits/
+
+Package: multitouch
+Architecture: any
+Depends: bash (>> 1.99)
+Description: Multitouch X input driver
+ This package is a multitouch Xorg input driver.
+
