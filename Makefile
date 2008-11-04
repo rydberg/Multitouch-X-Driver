@@ -4,7 +4,7 @@ MODULES = src
 
 o_src	= multitouch
 
-TARGETS	= #$(addsuffix /test,$(MODULES))
+TARGETS	= $(addsuffix /test,$(MODULES))
 
 OBJECTS	= $(addsuffix .o,\
 	$(foreach mod,$(MODULES),\

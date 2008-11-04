@@ -25,8 +25,19 @@
 #include <xf86.h>
 #include <xf86_OSproc.h>
 #include <xf86Xinput.h>
-#include <exevents.h>
+//#include <exevents.h>
 #include <linux/input.h>
+#include <errno.h>
+
+////////////////////////////////////////////////////////////////////////////
+
+#define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
+
+#define LONG_BITS (sizeof(long) * 8)
+#define NBITS(x) (((x) + LONG_BITS - 1) / LONG_BITS)
+#define OFF(x)   ((x) % LONG_BITS)
+#define LONG(x)  ((x) / LONG_BITS)
+#define TEST_BIT(bit, array) (array[LONG(bit)] & (1 << OFF(bit)))
 
 ////////////////////////////////////////////////////////////////////////////
 
