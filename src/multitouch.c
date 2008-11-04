@@ -68,7 +68,7 @@ static inline bool getbit(const unsigned long* map, int key)
 static bool getabs(struct input_absinfo *abs, int key, int fd)
 {
 	int rc;
-	SYSCALL(rc = ioctl(fd, EVIOCGABS(key), &abs));
+	SYSCALL(rc = ioctl(fd, EVIOCGABS(key), abs));
 	return rc >= 0;
 }
 
