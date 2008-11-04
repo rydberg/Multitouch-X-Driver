@@ -2,7 +2,7 @@ LIBRARY	= multitouch.so
 FDIS	= 11-multitouch.fdi
 MODULES = src
 
-o_src	= multitouch
+o_src	= capabilities multitouch
 
 TARGETS	= $(addsuffix /test,$(MODULES))
 
