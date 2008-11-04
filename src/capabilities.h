@@ -24,4 +24,9 @@ struct Capabilities {
 
 ////////////////////////////////////////////////////////
 
+int read_capabilities(struct Capabilities *cap, int fd);
+int output_capabilities(const struct Capabilities *cap);
+
+////////////////////////////////////////////////////////
+
 #endif

@@ -2,7 +2,8 @@ LIBRARY	= multitouch.so
 FDIS	= 11-multitouch.fdi
 MODULES = src
 
-o_src	= capabilities multitouch
+o_src	= capabilities \
+	multitouch
 
 TARGETS	= $(addsuffix /test,$(MODULES))
 
@@ -32,7 +33,7 @@ test:	$(TBIN)
 
 bin/%:	obj/%.o
 	@mkdir -p $(@D)
-	gcc $< $(TLIB) $(LIBS) -o $@
+	gcc $< $(OBJS) $(LIBS) -o $@
 
 $(TLIB): $(OBJS)
 	@rm -f $(TLIB)

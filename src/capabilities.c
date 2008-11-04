@@ -31,7 +31,7 @@ static bool getabs(struct input_absinfo *abs, int key, int fd)
 
 ////////////////////////////////////////////////////////
 
-static int read_capabilities(struct Capabilities *cap, int fd)
+int read_capabilities(struct Capabilities *cap, int fd)
 {
 	unsigned long evbits[nlongs(EV_MAX)];
 	unsigned long absbits[nlongs(ABS_MAX)];
@@ -66,7 +66,7 @@ static int read_capabilities(struct Capabilities *cap, int fd)
 
 ////////////////////////////////////////////////////////
 
-static int output_capabilities(const struct Capabilities *cap)
+int output_capabilities(const struct Capabilities *cap)
 {
 	char line[1024];
 	memset(line, 0, sizeof(line));
