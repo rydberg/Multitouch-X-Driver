@@ -82,6 +82,26 @@ int output_capabilities(const struct Capabilities *cap)
 	ADDCAP(line, cap, position_x);
 	ADDCAP(line, cap, position_y);
 	xf86Msg(X_INFO, "multitouch: caps:%s\n", line);
+	if (cap->has_touch_major)
+		xf86Msg(X_INFO, "multitouch: touch: %d %d\n",
+			cap->abs_touch_major.minimum,
+			cap->abs_touch_major.maximum);
+	if (cap->has_width_major)
+		xf86Msg(X_INFO, "multitouch: width: %d %d\n",
+			cap->abs_width_major.minimum,
+			cap->abs_width_major.maximum);		
+	if (cap->has_orientation)
+		xf86Msg(X_INFO, "multitouch: orientation: %d %d\n",
+			cap->abs_orientation.minimum,
+			cap->abs_orientation.maximum);		
+	if (cap->has_position_x)
+		xf86Msg(X_INFO, "multitouch: position_x: %d %d\n",
+			cap->abs_position_x.minimum,
+			cap->abs_position_x.maximum);		
+	if (cap->has_position_y)
+		xf86Msg(X_INFO, "multitouch: position_y: %d %d\n",
+			cap->abs_position_y.minimum,
+			cap->abs_position_y.maximum);		
 }
 
 ////////////////////////////////////////////////////////
