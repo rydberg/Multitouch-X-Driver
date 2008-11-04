@@ -4,7 +4,7 @@ MODULES = src
 
 o_src	= multitouch
 
-TARGETS	= $(addsuffix /test,$(MODULES))
+TARGETS	= #$(addsuffix /test,$(MODULES))
 
 OBJECTS	= $(addsuffix .o,\
 	$(foreach mod,$(MODULES),\
@@ -15,12 +15,12 @@ TLIB	= $(addprefix obj/,$(LIBRARY))
 TOBJ	= $(addprefix obj/,$(addsuffix .o,$(TARGETS)))
 TFDI	= $(addprefix fdi/,$(FDIS))
 OBJS	= $(addprefix obj/,$(OBJECTS))
-LIBS	= #-lhal -ldbus-glib-1
+LIBS	= -lX11 -lpixman-1
 
 DLIB	= usr/lib/xorg/modules/input
 DFDI	= usr/share/hal/fdi/policy/20thirdparty
 
-INCLUDE = -I.
+INCLUDE = -I. -I/usr/include/xorg -I/usr/include/pixman-1
 OPTS	= -O3
 
 .PHONY: all clean
@@ -30,7 +30,7 @@ all:	$(OBJS) $(TLIB) $(TOBJ) $(TBIN)
 
 bin/%:	obj/%.o
 	@mkdir -p $(@D)
-	gcc $(INCLUDE) $(OPTS) $< $(TLIB) $(LIBS) -o $@
+	gcc $< $(TLIB) $(LIBS) -o $@
 
 $(TLIB): $(OBJS)
 	@rm -f $(TLIB)
@@ -38,11 +38,11 @@ $(TLIB): $(OBJS)
 
 obj/%.o: %.c
 	@mkdir -p $(@D)
-	gcc -c $< -o $@
+	gcc $(INCLUDE) $(OPTS) -c $< -o $@
 
 obj/%.o: %.cc
 	@mkdir -p $(@D)
-	gcc -c $< -o $@
+	gcc $(INCLUDE) $(OPTS) -c $< -o $@
 
 clean:
 	rm -rf bin obj
@@ -53,5 +53,5 @@ distclean: clean
 install: $(TLIB) $(TFDI)
 	install -d "$(DESTDIR)/$(DLIB)"
 	install -d "$(DESTDIR)/$(DFDI)"
-	install -m 755 $(TBIN) "$(DESTDIR)/$(DLIB)"
+	install -m 755 $(TLIB) "$(DESTDIR)/$(DLIB)"
 	install -m 644 $(TFDI) "$(DESTDIR)/$(DFDI)"

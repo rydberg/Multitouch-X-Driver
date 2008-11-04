@@ -1,10 +1,7 @@
 /***************************************************************************
  *
- * addon-generic-kbd-backlight.c:
+ * Multitouch X driver
  * Copyright (C) 2008 Henrik Rydberg <rydberg@euromail.se>
- *
- * Based on addon-generic-backlight.c:
- * Copyright (C) 2008 Danny Kukawka <danny.kukawka@web.de>
  *
  * Licensed under the Academic Free License version 2.1
  *
@@ -24,218 +21,179 @@
  *
  **************************************************************************/
 
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "xorg-server.h"
+#include <xf86.h>
+#include <xf86_OSproc.h>
+#include <xf86Xinput.h>
+#include <exevents.h>
+#include <linux/input.h>
 
-#include "glib-abi.h"
-#include "dbus-abi.h"
-#include "hal-abi.h"
+////////////////////////////////////////////////////////////////////////////
 
-#define HAL_PROPERTY "org.freedesktop.Hal.Device.KeyboardBacklight"
+//#define BTN_MT_RAW_DATA		0x210	/* multitouch device */
+#define BTN_TOOL_PRESS		0x148	/* The trackpad is a physical button */
+#define BTN_MT_RAW_DATA		0x14b	/* multitouch device */
+#define BTN_MT_RAW_FINGER	0x14c	/* multitouch device */
+#define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
 
-static const char prop_name[] = HAL_PROPERTY;
-static const char prop_invalid[] = HAL_PROPERTY ".Invalid";
-static const char prop_set[] = "SetBrightness";
-static const char prop_get[] = "GetBrightness";
+#define ABS_MT_TOUCH		0x30
+#define ABS_MT_TOUCH_MAJOR	0x30
+#define ABS_MT_TOUCH_MINOR	0x31
+#define ABS_MT_WIDTH		0x32
+#define ABS_MT_WIDTH_MAJOR	0x32
+#define ABS_MT_WIDTH_MINOR	0x33
+#define ABS_MT_ORIENTATION	0x34
+#define ABS_MT_POSITION_X	0x35
+#define ABS_MT_POSITION_Y	0x36
 
-static struct GMainLoop *main_loop;
-static struct LibHalContext *halctx;
-static struct DBusConnection *conn;
+typedef int bool;
 
-static char sysfs_path[512];
-static int levels;
+#define ADDCAP(s, c, x) strcat(s, c->has_##x ? " " #x : "")
 
-/**
- * Get keyboard backlight level
- *
- * Tries to read from the specified sysfs device, and if successful,
- * updates the internal keyboard backlight state. Warns if the device
- * cannot be opened or be read from. Always returns the last succesful
- * read.
- */
-static int get_kbd_backlight()
+////////////////////////////////////////////////////////////////////////////
+
+struct Capabilities {
+	bool has_left, has_middle;
+	bool has_right, has_mtdata;
+	bool has_touch_major, has_touch_minor;
+	bool has_width_major, has_width_minor;
+	bool has_orientation, has_dummy;
+	bool has_position_x, has_position_y;
+	struct input_absinfo abs_touch_major;
+	struct input_absinfo abs_touch_minor;
+	struct input_absinfo abs_width_major;
+	struct input_absinfo abs_width_minor;
+	struct input_absinfo abs_orientation;
+	struct input_absinfo abs_position_x;
+	struct input_absinfo abs_position_y;
+};
+
+////////////////////////////////////////////////////////////////////////////
+
+static int read_capabilities(struct Capabilities *cap, int fd)
 {
-	static int level;
-	int fd;
-	char buf[64];
+	unsigned long evbits[NBITS(EV_MAX)];
+	unsigned long absbits[NBITS(ABS_MAX)];
+	unsigned long keybits[NBITS(KEY_MAX)];
+	int rc;
 
-	fd = open(sysfs_path, O_RDONLY);
-	if (fd < 0) {
-		HAL_WARNING(("Could not open '%s'", sysfs_path));
-		return level;
-	}
+	memset(cap, 0, sizeof(struct Capabilities));
+	
+	SYSCALL(rc = ioctl(fd, EVIOCGBIT(EV_SYN, sizeof(evbits)), evbits));
+	if (rc < 0)
+		return rc;
+	SYSCALL(rc = ioctl(fd, EVIOCGBIT(EV_KEY, sizeof(keybits)), keybits));
+	if (rc < 0)
+		return rc;
+	SYSCALL(rc = ioctl(fd, EVIOCGBIT(EV_ABS, sizeof(absbits)), absbits));
+	if (rc < 0)
+		return rc;
 
-	memset(buf, 0, sizeof(buf));
-	if (read(fd, buf, sizeof(buf)) < 0)
-		HAL_WARNING(("Could not read from '%s'", sysfs_path));
-	else
-		level = atoi(buf);
-
-	close(fd);
-	return level;
+	cap->has_left = TEST_BIT(BTN_LEFT, keybits);
+	cap->has_middle = TEST_BIT(BTN_MIDDLE, keybits);
+	cap->has_right = TEST_BIT(BTN_RIGHT, keybits);
+	cap->has_mtdata = TEST_BIT(BTN_MT_RAW_DATA, keybits);
+	
+	SYSCALL(rc = ioctl(fd, EVIOCGABS(ABS_MT_TOUCH_MAJOR),
+			   &cap->abs_touch_major));
+	cap->has_touch_major = rc >= 0;
 }
 
-/**
- * Set keyboard backlight level
- *
- * Warns if the device cannot be opened or be written to.
- * Returns bytes written on success, negative value on failure.
- */
-static int set_kbd_backlight(int level)
+static int output_capabilities(const struct Capabilities *cap)
 {
-	int fd, ret;
-	char buf[64];
-
-	sprintf(buf, "%d", level);
-
-	fd = open(sysfs_path, O_WRONLY);
-	if (fd < 0) {
-		HAL_WARNING(("Could not open '%s'", sysfs_path));
-		return -1;
-	}
-
-	ret = write(fd, buf, strlen(buf));
-	if (ret < 0)
-		HAL_WARNING(("Could not write '%s' to '%s'", buf, sysfs_path));
-
-	close(fd);
-	return ret;
+	char line[1024];
+	ADDCAP(line, cap, left);
+	ADDCAP(line, cap, middle);
+	ADDCAP(line, cap, right);
+	ADDCAP(line, cap, mtdata);
+	ADDCAP(line, cap, touch_major);
+	ADDCAP(line, cap, touch_minor);
+	ADDCAP(line, cap, width_major);
+	ADDCAP(line, cap, width_minor);
+	ADDCAP(line, cap, orientation);
+	ADDCAP(line, cap, position_x);
+	ADDCAP(line, cap, position_y);
+	xf86Msg(X_INFO, "multitouch: caps:%s\n", line);
 }
 
-/* DBus set keyboard backlight level */
-static struct DBusMessage *dbus_get_kbd_backlight(struct DBusMessage *msg)
+static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 {
-	struct DBusError err;
-	struct DBusMessage *reply;
-	int level;
+	InputInfoPtr local = xf86AllocateInput(drv, 0);
+	if (!local)
+		goto error;
 
-	dbus_error_init(&err);
-	if (!dbus_message_get_args(msg, &err, DBUS_TYPE_INVALID))
-		return dbus_message_new_error(msg, prop_invalid,
-			"Invalid message");
+	local->name = dev->identifier;
+	local->type_name = XI_TOUCHPAD;
+	local->device_control = 0;//DeviceControl;
+	local->read_input = 0;//ReadInput;
+	local->control_proc = 0;//ControlProc;
+	local->close_proc = 0;//CloseProc;
+	local->switch_mode = 0;//SwitchMode;
+	local->conversion_proc = 0;//ConvertProc;
+	local->reverse_conversion_proc = NULL;
+	local->dev = NULL;
+	local->private = 0;//priv;
+	local->private_flags = 0;
+	local->flags = XI86_POINTER_CAPABLE | XI86_SEND_DRAG_EVENTS;
+	local->conf_idev = dev;
+	//local->motion_history_proc = xf86GetMotionEvents;
+	//local->history_size = 0;
+	local->always_core_feedback = 0;
 
-	level = get_kbd_backlight();
+	xf86CollectInputOptions(local, NULL, NULL);
+	xf86OptionListReport(local->options);
 
-	reply = dbus_message_new_method_return(msg);
-	if (reply)
-		dbus_message_append_args(reply, DBUS_TYPE_INT32, &level,
-			DBUS_TYPE_INVALID);
-
-	return reply;
+	local->fd = xf86OpenSerial(local->options);
+	if (local->fd < 0) {
+		xf86Msg(X_ERROR, "multitouch: cannot open device\n");
+		goto error;
+	}
+	struct Capabilities cap;
+	read_capabilities(&cap, local->fd);
+	output_capabilities(&cap);
+	xf86CloseSerial(local->fd);
+	local->fd = -1;
+	local->flags |= XI86_CONFIGURED;
+ error:
+	return local;
 }
 
-/* DBus set keyboard backlight level */
-static struct DBusMessage *dbus_set_kbd_backlight(struct DBusMessage *msg)
+static void uninit(InputDriverPtr drv, InputInfoPtr local, int flags)
 {
-	struct DBusError err;
-	int level;
-
-	dbus_error_init(&err);
-	if (!dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &level,
-			DBUS_TYPE_INVALID))
-		return dbus_message_new_error(msg, prop_invalid,
-			"Brightness level argument missing");
-
-	if (level < 0 || level > levels - 1)
-		return dbus_message_new_error(msg, prop_invalid,
-			"Brightness level is invalid");
-
-	set_kbd_backlight(level);
-
-	return dbus_message_new_method_return(msg);
+	xf86DeleteInput(local, 0);
 }
 
-/* DBus filter function */
-static DBusHandlerResult filter_function(struct DBusConnection *connection,
-					 struct DBusMessage *message,
-					 void *userdata)
+////////////////////////////////////////////////////////////////////////////
+
+static InputDriverRec MULTITOUCH = {
+    1,
+    "multitouch",
+    NULL,
+    preinit,
+    uninit,
+    NULL,
+    0
+};
+
+static XF86ModuleVersionInfo VERSION = {
+    "multitouch",
+    MODULEVENDORSTRING,
+    MODINFOSTRING1,
+    MODINFOSTRING2,
+    XORG_VERSION_CURRENT,
+    0, 1, 0,
+    ABI_CLASS_XINPUT,
+    ABI_XINPUT_VERSION,
+    MOD_CLASS_XINPUT,
+    {0, 0, 0, 0}
+};
+
+static pointer setup(pointer module, pointer options, int *errmaj, int *errmin)
 {
-	struct DBusMessage *reply = NULL;
-
-	if (dbus_message_is_method_call(message, prop_name, prop_get))
-		reply = dbus_get_kbd_backlight(message);
-	else if (dbus_message_is_method_call(message, prop_name, prop_set))
-		reply = dbus_set_kbd_backlight(message);
-
-	if (reply) {
-		dbus_connection_send(connection, reply, NULL);
-		dbus_message_unref(reply);
-	}
-
-	return DBUS_HANDLER_RESULT_HANDLED;
+    xf86AddInputDriver(&MULTITOUCH, module, 0);
+    return module;
 }
 
-int main(int argc, char *argv[])
-{
-	struct DBusError err;
-	struct stat fs;
+XF86ModuleData multitouchModuleData = {&VERSION, &setup, NULL };
 
-	char *udi = getenv("UDI");
-	char *path = getenv("HAL_PROP_LINUX_SYSFS_PATH");
-	char *level_str = getenv("HAL_PROP_KEYBOARD_BACKLIGHT_NUM_LEVELS");
-
-	setup_logger();
-
-	if (udi == NULL) {
-		HAL_ERROR(("No device specified"));
-		return -2;
-	}
-	if (path == NULL) {
-		HAL_ERROR(("No sysfs path specified"));
-		return -2;
-	}
-	if (level_str == NULL) {
-		HAL_ERROR(("No keyboard_backlight.num_levels defined"));
-		return -2;
-	}
-
-	levels = atoi(level_str);
-	snprintf(sysfs_path, sizeof(sysfs_path), "%s/brightness", path);
-
-	HAL_DEBUG(("udi='%s', path='%s', levels='%d'", udi, path, levels));
-
-	if (stat(sysfs_path, &fs)) {
-		HAL_ERROR(("The sysfs property path does not exist"));
-		return -2;
-	}
-
-	dbus_error_init(&err);
-	halctx = libhal_ctx_init_direct(&err);
-
-	if (halctx == NULL) {
-		HAL_ERROR(("Cannot connect to hald"));
-		return -3;
-	}
-
-	conn = libhal_ctx_get_dbus_connection(halctx);
-	dbus_connection_setup_with_g_main(conn, NULL);
-
-	dbus_connection_add_filter(conn, filter_function, NULL, NULL);
-
-	if (!libhal_device_claim_interface(halctx, udi, prop_name,
-		"    <method name=\"GetBrightness\">\n"
-		"      <arg name=\"brightness_value\" direction=\"out\" type=\"i\"/>\n"
-		"    </method>\n"
-		"    <method name=\"SetBrightness\">\n"
-		"      <arg name=\"brightness_value\" direction=\"in\" type=\"i\"/>\n"
-		"    </method>\n",
-		&err)) {
-		HAL_ERROR(("Cannot claim interface '" HAL_PROPERTY "'"));
-		return -4;
-	}
-
-	dbus_error_init(&err);
-	if (!libhal_device_addon_is_ready(halctx, udi, &err))
-		return -4;
-
-	main_loop = g_main_loop_new(NULL, FALSE);
-	g_main_loop_run(main_loop);
-
-	return 0;
-}
-
+////////////////////////////////////////////////////////////////////////////
