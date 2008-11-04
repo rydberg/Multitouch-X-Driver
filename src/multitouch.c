@@ -30,21 +30,11 @@
 #include <errno.h>
 
 ////////////////////////////////////////////////////////////////////////////
-
-#define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
-
-#define LONG_BITS (sizeof(long) * 8)
-#define NBITS(x) (((x) + LONG_BITS - 1) / LONG_BITS)
-#define OFF(x)   ((x) % LONG_BITS)
-#define LONG(x)  ((x) / LONG_BITS)
-#define TEST_BIT(bit, array) (array[LONG(bit)] & (1 << OFF(bit)))
-
-////////////////////////////////////////////////////////////////////////////
-
-//#define BTN_MT_RAW_DATA		0x210	/* multitouch device */
+//#define BTN_MT_REPORT_PACKET	0x210	/* report multitouch packet data */
+//#define BTN_MT_REPORT_FINGER	0x211	/* report multitouch finger data */
 #define BTN_TOOL_PRESS		0x148	/* The trackpad is a physical button */
-#define BTN_MT_RAW_DATA		0x14b	/* multitouch device */
-#define BTN_MT_RAW_FINGER	0x14c	/* multitouch device */
+#define BTN_MT_REPORT_PACKET	0x14b	/* multitouch device */
+#define BTN_MT_REPORT_FINGER	0x14c	/* multitouch device */
 #define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
 
 #define ABS_MT_TOUCH		0x30
@@ -58,6 +48,32 @@
 #define ABS_MT_POSITION_Y	0x36
 
 typedef int bool;
+
+////////////////////////////////////////////////////////////////////////////
+
+#define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
+
+static const int bits_per_long = 8 * sizeof(long);
+
+static inline int nlongs(int nbit)
+{
+	return (nbit + bits_per_long - 1) / bits_per_long;
+}
+
+static inline bool getbit(const unsigned long* map, int key)
+{
+	return (map[key / bits_per_long] >> (key % bits_per_long)) & 0x01;
+}
+
+static bool getabs(struct input_absinfo *abs, int key, int fd)
+{
+	int rc;
+	SYSCALL(rc = ioctl(fd, EVIOCGABS(key), &abs));
+	return rc >= 0;
+}
+
+#define SETABS(c, x, map, key, fd)					\
+	c->has_##x = getbit(map, key) && getabs(&c->abs_##x, key, fd)
 
 #define ADDCAP(s, c, x) strcat(s, c->has_##x ? " " #x : "")
 
@@ -83,9 +99,9 @@ struct Capabilities {
 
 static int read_capabilities(struct Capabilities *cap, int fd)
 {
-	unsigned long evbits[NBITS(EV_MAX)];
-	unsigned long absbits[NBITS(ABS_MAX)];
-	unsigned long keybits[NBITS(KEY_MAX)];
+	unsigned long evbits[nlongs(EV_MAX)];
+	unsigned long absbits[nlongs(ABS_MAX)];
+	unsigned long keybits[nlongs(KEY_MAX)];
 	int rc;
 
 	memset(cap, 0, sizeof(struct Capabilities));
@@ -100,19 +116,24 @@ static int read_capabilities(struct Capabilities *cap, int fd)
 	if (rc < 0)
 		return rc;
 
-	cap->has_left = TEST_BIT(BTN_LEFT, keybits);
-	cap->has_middle = TEST_BIT(BTN_MIDDLE, keybits);
-	cap->has_right = TEST_BIT(BTN_RIGHT, keybits);
-	cap->has_mtdata = TEST_BIT(BTN_MT_RAW_DATA, keybits);
-	
-	SYSCALL(rc = ioctl(fd, EVIOCGABS(ABS_MT_TOUCH_MAJOR),
-			   &cap->abs_touch_major));
-	cap->has_touch_major = rc >= 0;
+	cap->has_left = getbit(keybits, BTN_LEFT);
+	cap->has_middle = getbit(keybits, BTN_MIDDLE);
+	cap->has_right = getbit(keybits, BTN_RIGHT);
+	cap->has_mtdata = getbit(keybits, BTN_MT_REPORT_PACKET);
+
+	SETABS(cap, touch_major, absbits, ABS_MT_TOUCH_MAJOR, fd);
+	SETABS(cap, touch_minor, absbits, ABS_MT_TOUCH_MINOR, fd);
+	SETABS(cap, width_major, absbits, ABS_MT_WIDTH_MAJOR, fd);
+	SETABS(cap, width_minor, absbits, ABS_MT_WIDTH_MINOR, fd);
+	SETABS(cap, orientation, absbits, ABS_MT_ORIENTATION, fd);
+	SETABS(cap, position_x, absbits, ABS_MT_POSITION_X, fd);
+	SETABS(cap, position_y, absbits, ABS_MT_POSITION_Y, fd);
 }
 
 static int output_capabilities(const struct Capabilities *cap)
 {
 	char line[1024];
+	memset(line, 0, sizeof(line));
 	ADDCAP(line, cap, left);
 	ADDCAP(line, cap, middle);
 	ADDCAP(line, cap, right);

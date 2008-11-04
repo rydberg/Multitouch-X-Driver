@@ -4,7 +4,7 @@ MODULES = src
 
 o_src	= multitouch
 
-TARGETS	= #$(addsuffix /test,$(MODULES))
+TARGETS	= $(addsuffix /test,$(MODULES))
 
 OBJECTS	= $(addsuffix .o,\
 	$(foreach mod,$(MODULES),\
@@ -26,7 +26,9 @@ OPTS	= -O3
 .PHONY: all clean
 .PRECIOUS: obj/%.o
 
-all:	$(OBJS) $(TLIB) $(TOBJ) $(TBIN)
+all:	$(OBJS) $(TLIB) $(TOBJ)
+
+test:	$(TBIN)
 
 bin/%:	obj/%.o
 	@mkdir -p $(@D)
