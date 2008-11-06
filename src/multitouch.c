@@ -27,39 +27,44 @@
 
 static int device_init(LocalDevicePtr local)
 {
-    struct MTouch *mt = local->private;
-    local->fd = xf86OpenSerial(local->options);
-    if (local->fd < 0) {
-	    xf86Msg(X_ERROR, "multitouch: cannot configure device\n");
-	    return local->fd;
-    }
-    if (configure_mtouch(mt, local->fd))
-	    return -1;
-    xf86CloseSerial(local->fd);
-    return 0;
+	struct MTouch *mt = local->private;
+	local->fd = xf86OpenSerial(local->options);
+	if (local->fd < 0) {
+		xf86Msg(X_ERROR, "multitouch: cannot configure device\n");
+		return local->fd;
+	}
+	if (configure_mtouch(mt, local->fd))
+		return -1;
+	xf86CloseSerial(local->fd);
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
 static int device_on(LocalDevicePtr local)
 {
-    struct MTouch *mt = local->private;
-    local->fd = xf86OpenSerial(local->options);
-    if (local->fd < 0) {
-	    xf86Msg(X_ERROR, "multitouch: cannot open device\n");
-	    return local->fd;
-    }
-    if (init_mtouch(mt))
-	    return -1;
-    return 0;
+	struct MTouch *mt = local->private;
+	local->fd = xf86OpenSerial(local->options);
+	if (local->fd < 0) {
+		xf86Msg(X_ERROR, "multitouch: cannot open device\n");
+		return local->fd;
+	}
+	if (open_mtouch(mt, local->fd))
+		return -1;
+	xf86AddEnabledDevice(local);
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
 static void device_off(LocalDevicePtr local)
 {
-	if(local->fd >= 0)
-		xf86CloseSerial(local->fd);
+	struct MTouch *mt = local->private;
+	if(local->fd < 0)
+		return;
+	xf86RemoveEnabledDevice(local);
+	close_mtouch(mt, local->fd);
+	xf86CloseSerial(local->fd);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -73,15 +78,15 @@ static void device_close(LocalDevicePtr local)
 /* called for each full received packet from the touchpad */
 static void read_input(LocalDevicePtr local)
 {
-    struct MTouch *mt = local->private;
-
-    xf86Msg(X_INFO, "read_input called\n");
-
-    if (local->fd >= 0) {
-	    while (!read_hwdata(&mt->hw, local->fd)) {
-		    // do all the good stuff here
-	    }
-    }
+	struct MTouch *mt = local->private;
+	
+	xf86Msg(X_INFO, "read_input called\n");
+	
+	if (local->fd >= 0) {
+		while (!read_hwdata(&mt->hw, local->fd)) {
+			// do all the good stuff here
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -154,32 +159,32 @@ static void uninit(InputDriverPtr drv, InputInfoPtr local, int flags)
 ////////////////////////////////////////////////////////////////////////////
 
 static InputDriverRec MULTITOUCH = {
-    1,
-    "multitouch",
-    NULL,
-    preinit,
-    uninit,
-    NULL,
-    0
+	1,
+	"multitouch",
+	NULL,
+	preinit,
+	uninit,
+	NULL,
+	0
 };
 
 static XF86ModuleVersionInfo VERSION = {
-    "multitouch",
-    MODULEVENDORSTRING,
-    MODINFOSTRING1,
-    MODINFOSTRING2,
-    XORG_VERSION_CURRENT,
-    0, 1, 0,
-    ABI_CLASS_XINPUT,
-    ABI_XINPUT_VERSION,
-    MOD_CLASS_XINPUT,
-    {0, 0, 0, 0}
+	"multitouch",
+	MODULEVENDORSTRING,
+	MODINFOSTRING1,
+	MODINFOSTRING2,
+	XORG_VERSION_CURRENT,
+	0, 1, 0,
+	ABI_CLASS_XINPUT,
+	ABI_XINPUT_VERSION,
+	MOD_CLASS_XINPUT,
+	{0, 0, 0, 0}
 };
 
 static pointer setup(pointer module, pointer options, int *errmaj, int *errmin)
 {
-    xf86AddInputDriver(&MULTITOUCH, module, 0);
-    return module;
+	xf86AddInputDriver(&MULTITOUCH, module, 0);
+	return module;
 }
 
 XF86ModuleData multitouchModuleData = {&VERSION, &setup, NULL };
