@@ -3,6 +3,7 @@ FDIS	= 11-multitouch.fdi
 MODULES = src
 
 o_src	= capabilities \
+	iobuffer \
 	hwdata \
 	mtouch \
 	multitouch

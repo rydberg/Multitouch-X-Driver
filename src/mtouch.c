@@ -1,5 +1,4 @@
 #include "mtouch.h"
-#include <errno.h>
 
 /******************************************************/
 
@@ -17,6 +16,8 @@ int configure_mtouch(struct MTouch *mt, int fd)
 int open_mtouch(struct MTouch *mt, int fd)
 {
 	int rc;
+	init_iobuf(&mt->buf);
+	init_hwdata(&mt->hw);
 	if (mt->grabbed)
 		return 0;
 	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
@@ -34,11 +35,22 @@ void close_mtouch(struct MTouch *mt, int fd)
 {
 	int rc;
 	if (!mt->grabbed)
-		return 0;
+		return;
 	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)0));
 	if (rc < 0)
 		xf86Msg(X_WARNING, "multitouch: cannot ungrab device\n");
 	mt->grabbed = 0;
+}
+
+/******************************************************/
+
+bool read_synchronized_event(struct MTouch *mt, int fd)
+{
+	const struct input_event* ev;
+	while(ev = get_iobuf_event(&mt->buf, fd))
+		if (read_hwdata(&mt->hw, ev))
+		    return 1;
+	return 0;
 }
 
 /******************************************************/

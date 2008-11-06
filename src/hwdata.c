@@ -1,17 +1,22 @@
 #include "hwdata.h"
-#include <errno.h>
 
 /******************************************************/
 
-static int parse_event(struct HWData *hw)
+void init_hwdata(struct HWData *hw)
 {
-	const struct input_event *ev = hw->event + hw->at++;
+	memset(hw, 0, sizeof(struct HWData));
+}
+
+/******************************************************/
+
+bool read_hwdata(struct HWData *hw, const struct input_event* ev)
+{
 	bool on = ev->value != 0;
 	switch (ev->type) {
 	case EV_SYN:
 		switch (ev->code) {
 		case SYN_REPORT:
-			return 0;
+			return 1;
 		}
 		break;
 	case EV_KEY:
@@ -61,25 +66,8 @@ static int parse_event(struct HWData *hw)
 		}
 		break;
 	}
-	return -EAGAIN;
+	return 0;
 }
-
-/******************************************************/
-
-int read_hwdata(struct HWData *hw, int fd)
-{
-	int n;
-	do {
-		while (hw->at < hw->nev)
-			if (!parse_event(hw))
-				return 0;
-		n = read(fd, hw->event, sizeof(hw->event));
-		hw->at = 0;
-		hw->nev = n / sizeof(struct input_event);
-		xf86Msg(X_INFO, "multitouch: read: %d %d\n", n, hw->nev);
-	} while (n > 0);
-	return -EIO;
-};
 
 /******************************************************/
 

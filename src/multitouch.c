@@ -83,7 +83,8 @@ static void read_input(LocalDevicePtr local)
 	xf86Msg(X_INFO, "read_input called\n");
 	
 	if (local->fd >= 0) {
-		while (!read_hwdata(&mt->hw, local->fd)) {
+		while (read_synchronized_event(mt, local->fd)) {
+			xf86Msg(X_INFO, "synced event\n");
 			// do all the good stuff here
 		}
 	}
