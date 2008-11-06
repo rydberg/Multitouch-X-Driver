@@ -62,11 +62,13 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	SETABS(cap, orientation, absbits, ABS_MT_ORIENTATION, fd);
 	SETABS(cap, position_x, absbits, ABS_MT_POSITION_X, fd);
 	SETABS(cap, position_y, absbits, ABS_MT_POSITION_Y, fd);
+
+	return 0;
 }
 
 ////////////////////////////////////////////////////////
 
-int output_capabilities(const struct Capabilities *cap)
+void output_capabilities(const struct Capabilities *cap)
 {
 	char line[1024];
 	memset(line, 0, sizeof(line));

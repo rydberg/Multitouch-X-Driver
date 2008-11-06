@@ -2,7 +2,6 @@
 #define CAPABILITIES_H
 
 #include "common.h"
-#include <linux/input.h>
 
 ////////////////////////////////////////////////////////
 
@@ -25,7 +24,7 @@ struct Capabilities {
 ////////////////////////////////////////////////////////
 
 int read_capabilities(struct Capabilities *cap, int fd);
-int output_capabilities(const struct Capabilities *cap);
+void output_capabilities(const struct Capabilities *cap);
 
 ////////////////////////////////////////////////////////
 

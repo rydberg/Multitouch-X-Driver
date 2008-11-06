@@ -1,0 +1,21 @@
+#ifndef MTOUCH_H
+#define MTOUCH_H
+
+#include "capabilities.h"
+#include "hwdata.h"
+
+////////////////////////////////////////////////////////
+
+struct MTouch {
+	struct Capabilities caps;
+	struct HWData hw;
+};
+
+////////////////////////////////////////////////////////
+
+int configure_mtouch(struct MTouch *mt, int fd);
+int init_mtouch(struct MTouch *mt);
+
+////////////////////////////////////////////////////////
+
+#endif

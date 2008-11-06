@@ -21,47 +21,125 @@
  *
  **************************************************************************/
 
-#include "capabilities.h"
+#include "mtouch.h"
+
+////////////////////////////////////////////////////////////////////////////
+
+static int device_init(LocalDevicePtr local)
+{
+    struct MTouch *mt = local->private;
+    local->fd = xf86OpenSerial(local->options);
+    if (local->fd < 0) {
+	    xf86Msg(X_ERROR, "multitouch: cannot configure device\n");
+	    return local->fd;
+    }
+    if (configure_mtouch(mt, local->fd))
+	    return -1;
+    xf86CloseSerial(local->fd);
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static int device_on(LocalDevicePtr local)
+{
+    struct MTouch *mt = local->private;
+    local->fd = xf86OpenSerial(local->options);
+    if (local->fd < 0) {
+	    xf86Msg(X_ERROR, "multitouch: cannot open device\n");
+	    return local->fd;
+    }
+    if (init_mtouch(mt))
+	    return -1;
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static void device_off(LocalDevicePtr local)
+{
+	if(local->fd >= 0)
+		xf86CloseSerial(local->fd);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static void device_close(LocalDevicePtr local)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+/* called for each full received packet from the touchpad */
+static void read_input(LocalDevicePtr local)
+{
+    struct MTouch *mt = local->private;
+
+    xf86Msg(X_INFO, "read_input called\n");
+
+    if (local->fd >= 0) {
+	    while (!read_hwdata(&mt->hw, local->fd)) {
+		    // do all the good stuff here
+	    }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static Bool device_control(DeviceIntPtr dev, int mode)
+{
+	LocalDevicePtr local = dev->public.devicePrivate;
+	switch (mode) {
+	case DEVICE_INIT:
+		xf86Msg(X_INFO, "device control: init\n");
+		if (device_init(local))
+			return !Success;
+		return Success;
+	case DEVICE_ON:
+		xf86Msg(X_INFO, "device control: on\n");
+		if (device_on(local))
+			return !Success;
+		return Success;
+	case DEVICE_OFF:
+		xf86Msg(X_INFO, "device control: off\n");
+		device_off(local);
+		return Success;
+	case DEVICE_CLOSE:
+		xf86Msg(X_INFO, "device control: close\n");
+		device_close(local);
+		return Success;
+	default:
+		xf86Msg(X_INFO, "device control: default\n");
+		return BadValue;
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 
 static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 {
+	struct MTouch *mt;
 	InputInfoPtr local = xf86AllocateInput(drv, 0);
 	if (!local)
+		goto error;
+	mt = xcalloc(1, sizeof(struct MTouch));
+	if (!mt)
 		goto error;
 
 	local->name = dev->identifier;
 	local->type_name = XI_TOUCHPAD;
-	local->device_control = 0;//DeviceControl;
-	local->read_input = 0;//ReadInput;
-	local->control_proc = 0;//ControlProc;
-	local->close_proc = 0;//CloseProc;
-	local->switch_mode = 0;//SwitchMode;
-	local->conversion_proc = 0;//ConvertProc;
-	local->reverse_conversion_proc = NULL;
-	local->dev = NULL;
-	local->private = 0;//priv;
+	local->device_control = device_control;
+	local->read_input = read_input;
+	local->private = mt;
 	local->private_flags = 0;
 	local->flags = XI86_POINTER_CAPABLE | XI86_SEND_DRAG_EVENTS;
 	local->conf_idev = dev;
-	//local->motion_history_proc = xf86GetMotionEvents;
-	//local->history_size = 0;
 	local->always_core_feedback = 0;
 
 	xf86CollectInputOptions(local, NULL, NULL);
 	xf86OptionListReport(local->options);
 
-	local->fd = xf86OpenSerial(local->options);
-	if (local->fd < 0) {
-		xf86Msg(X_ERROR, "multitouch: cannot open device\n");
-		goto error;
-	}
-	struct Capabilities cap;
-	read_capabilities(&cap, local->fd);
-	output_capabilities(&cap);
-	xf86CloseSerial(local->fd);
-	local->fd = -1;
 	local->flags |= XI86_CONFIGURED;
  error:
 	return local;
@@ -69,6 +147,7 @@ static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 
 static void uninit(InputDriverPtr drv, InputInfoPtr local, int flags)
 {
+	xfree(local->private);
 	xf86DeleteInput(local, 0);
 }
 
