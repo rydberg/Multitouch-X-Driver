@@ -82,7 +82,7 @@ static void read_input(LocalDevicePtr local)
 	if (local->fd >= 0) {
 		while (read_synchronized_event(mt, local->fd)) {
 			modify_state(&mt->ns, &mt->hw);
-			// and something in between here
+			output_state(&mt->ns);
 			mt->os = mt->ns;
 		}
 	}

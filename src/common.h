@@ -7,6 +7,7 @@
 #include <xf86Xinput.h>
 #include <linux/input.h>
 #include <errno.h>
+#include <match/match.h>
 //#include <exevents.h>
 
 ////////////////////////////////////////////////////////
@@ -26,8 +27,6 @@
 #define ABS_MT_ORIENTATION	0x34
 #define ABS_MT_POSITION_X	0x35
 #define ABS_MT_POSITION_Y	0x36
-
-typedef int bool;
 
 #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 

@@ -3,7 +3,6 @@
 
 #include "common.h"
 
-#define DIM_FINGER 16
 #define DIM_BUTTON 3
 
 #define MT_BUTTON_LEFT 0

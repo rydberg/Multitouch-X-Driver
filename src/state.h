@@ -14,7 +14,8 @@ struct FingerState {
 
 struct State {
 	struct FingerState finger[DIM_FINGER];
-	int nfinger, button[DIM_BUTTON];
+	int button[DIM_BUTTON];
+	int nfinger, lastid;
 };
 
 ////////////////////////////////////////////////////////

@@ -1,6 +1,8 @@
 LIBRARY	= multitouch.so
 FDIS	= 11-multitouch.fdi
-MODULES = src
+MODULES = match src
+
+o_match	= match
 
 o_src	= capabilities \
 	iobuffer \
@@ -31,13 +33,11 @@ OPTS	= -O3
 .PHONY: all clean
 .PRECIOUS: obj/%.o
 
-all:	$(OBJS) $(TLIB) $(TOBJ)
-
-test:	$(TBIN)
+all:	$(OBJS) $(TLIB) $(TOBJ) $(TBIN)
 
 bin/%:	obj/%.o
 	@mkdir -p $(@D)
-	gcc $< $(OBJS) $(LIBS) -o $@
+	gcc $< -o $@
 
 $(TLIB): $(OBJS)
 	@rm -f $(TLIB)
@@ -62,3 +62,8 @@ install: $(TLIB) $(TFDI)
 	install -d "$(DESTDIR)/$(DFDI)"
 	install -m 755 $(TLIB) "$(DESTDIR)/$(DLIB)"
 	install -m 644 $(TFDI) "$(DESTDIR)/$(DFDI)"
+
+test:
+	gcc $< $(OBJS) -o LINKTEST
+
+obj/match/test.o: match/match.c
