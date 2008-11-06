@@ -4,6 +4,11 @@
 #include "common.h"
 
 #define DIM_FINGER 16
+#define DIM_BUTTON 3
+
+#define MT_BUTTON_LEFT 0
+#define MT_BUTTON_MIDDLE 1
+#define MT_BUTTON_RIGHT 2
 
 ////////////////////////////////////////////////////////
 
@@ -18,8 +23,7 @@ struct FingerData {
 
 struct HWData {
 	struct FingerData finger[DIM_FINGER];
-	int nfinger;
-	bool left, middle, right;
+	int nfinger, button[DIM_BUTTON];
 };
 
 ////////////////////////////////////////////////////////

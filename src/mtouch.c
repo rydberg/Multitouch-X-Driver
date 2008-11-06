@@ -18,6 +18,8 @@ int open_mtouch(struct MTouch *mt, int fd)
 	int rc;
 	init_iobuf(&mt->buf);
 	init_hwdata(&mt->hw);
+	init_state(&mt->os);
+	init_state(&mt->ns);
 	if (mt->grabbed)
 		return 0;
 	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));

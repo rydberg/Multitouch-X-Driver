@@ -79,13 +79,11 @@ static void device_close(LocalDevicePtr local)
 static void read_input(LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	
-	xf86Msg(X_INFO, "read_input called\n");
-	
 	if (local->fd >= 0) {
 		while (read_synchronized_event(mt, local->fd)) {
-			xf86Msg(X_INFO, "synced event\n");
-			// do all the good stuff here
+			modify_state(&mt->ns, &mt->hw);
+			// and something in between here
+			mt->os = mt->ns;
 		}
 	}
 }

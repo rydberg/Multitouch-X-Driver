@@ -22,13 +22,13 @@ bool read_hwdata(struct HWData *hw, const struct input_event* ev)
 	case EV_KEY:
 		switch (ev->code) {
 		case BTN_LEFT:
-			hw->left = on;
+			hw->button[MT_BUTTON_LEFT] = on;
 			break;
 		case BTN_MIDDLE:
-			hw->middle = on;
+			hw->button[MT_BUTTON_MIDDLE] = on;
 			break;
 		case BTN_RIGHT:
-			hw->right = on;
+			hw->button[MT_BUTTON_RIGHT] = on;
 			break;
 		case BTN_MT_REPORT_PACKET:
 			if (on)

@@ -5,6 +5,7 @@ MODULES = src
 o_src	= capabilities \
 	iobuffer \
 	hwdata \
+	state \
 	mtouch \
 	multitouch
 
