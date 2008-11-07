@@ -25,9 +25,18 @@
 
 ////////////////////////////////////////////////////////////////////////////
 
-static int device_init(LocalDevicePtr local)
+static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
+{
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
+	unsigned char btmap[DIM_BUTTON];
+	int i;
+
 	local->fd = xf86OpenSerial(local->options);
 	if (local->fd < 0) {
 		xf86Msg(X_ERROR, "multitouch: cannot configure device\n");
@@ -36,6 +45,32 @@ static int device_init(LocalDevicePtr local)
 	if (configure_mtouch(mt, local->fd))
 		return -1;
 	xf86CloseSerial(local->fd);
+
+	for (i = 0; i < DIM_BUTTON; i++)
+		btmap[i] = i;
+
+	InitPointerDeviceStruct((DevicePtr)dev,
+				btmap,
+				DIM_BUTTON,
+				GetMotionHistory,
+				pointer_control,
+				GetMotionHistorySize(),
+				2);
+
+	xf86InitValuatorAxisStruct(dev, 0,
+				   mt->caps.abs_position_x.minimum,
+				   mt->caps.abs_position_x.maximum,
+				   1, 0, 1);
+	xf86InitValuatorDefaults(dev, 0);
+	xf86InitValuatorAxisStruct(dev, 1,
+				   mt->caps.abs_position_y.minimum,
+				   mt->caps.abs_position_y.maximum,
+				   1, 0, 1);
+	xf86InitValuatorDefaults(dev, 1);
+
+	//InitDeviceProperties(local);
+	//XIRegisterPropertyHandler(dev, SetProperty, NULL, NULL);
+
 	return 0;
 }
 
@@ -75,6 +110,26 @@ static void device_close(LocalDevicePtr local)
 
 ////////////////////////////////////////////////////////////////////////////
 
+static void handle_state(LocalDevicePtr local,
+			 const struct State *os,
+			 const struct State *ns)
+{
+	const struct FingerState *fs, *p, *e = ns->finger + ns->nfinger;
+	int dx = 0, dy = 0, i;
+	for (p = ns->finger; p != e; p++) {
+		if (fs = find_finger(os, p->id)) {
+			dx += p->hw.position_x - fs->hw.position_x;
+			dy += p->hw.position_y - fs->hw.position_y;
+		}
+	}
+	if (dx || dy) {
+		xf86Msg(X_INFO, "motion: %d %d\n", dx, dy);
+		xf86PostMotionEvent(local->dev, 0, 0, 2, dx, dy);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
 /* called for each full received packet from the touchpad */
 static void read_input(LocalDevicePtr local)
 {
@@ -82,7 +137,8 @@ static void read_input(LocalDevicePtr local)
 	if (local->fd >= 0) {
 		while (read_synchronized_event(mt, local->fd)) {
 			modify_state(&mt->ns, &mt->hw, &mt->caps);
-			output_state(&mt->ns);
+			//output_state(&mt->ns);
+			handle_state(local, &mt->os, &mt->ns);
 			mt->os = mt->ns;
 		}
 	}
@@ -96,16 +152,18 @@ static Bool device_control(DeviceIntPtr dev, int mode)
 	switch (mode) {
 	case DEVICE_INIT:
 		xf86Msg(X_INFO, "device control: init\n");
-		if (device_init(local))
+		if (device_init(dev, local))
 			return !Success;
 		return Success;
 	case DEVICE_ON:
 		xf86Msg(X_INFO, "device control: on\n");
 		if (device_on(local))
 			return !Success;
+		dev->public.on = TRUE;
 		return Success;
 	case DEVICE_OFF:
 		xf86Msg(X_INFO, "device control: off\n");
+		dev->public.on = FALSE;
 		device_off(local);
 		return Success;
 	case DEVICE_CLOSE:
