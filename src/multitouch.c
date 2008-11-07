@@ -29,6 +29,14 @@ static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
 {
 }
 
+static int pointer_property(DeviceIntPtr dev,
+			    Atom property,
+			    XIPropertyValuePtr prop,
+			    BOOL checkonly)
+{
+	return Success;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
@@ -61,15 +69,15 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 				   mt->caps.abs_position_x.minimum,
 				   mt->caps.abs_position_x.maximum,
 				   1, 0, 1);
-	xf86InitValuatorDefaults(dev, 0);
 	xf86InitValuatorAxisStruct(dev, 1,
 				   mt->caps.abs_position_y.minimum,
 				   mt->caps.abs_position_y.maximum,
 				   1, 0, 1);
+	xf86InitValuatorDefaults(dev, 0);
 	xf86InitValuatorDefaults(dev, 1);
 
-	//InitDeviceProperties(local);
-	//XIRegisterPropertyHandler(dev, SetProperty, NULL, NULL);
+	InitDeviceProperties(local);
+	XIRegisterPropertyHandler(dev, pointer_property, NULL, NULL);
 
 	return 0;
 }
