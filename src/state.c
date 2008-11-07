@@ -1,5 +1,6 @@
 #include "state.h"
 #include <stdlib.h>
+#include <limits.h>
 
 /******************************************************/
 
@@ -74,6 +75,13 @@ void modify_state(struct State *s,
 
 	/* sort fingers in touching order */
 	qsort(s->finger, s->nfinger, sizeof(struct FingerState), fincmp);
+
+	/* make sure wrap-around does not create very strange effects */
+	if (s->lastid > INT_MAX / 2) {
+		s->lastid = 0;
+		for (j = 0; j < s->nfinger; j++)
+			s->finger[j].id = ++s->lastid;
+	}
 
 	/* copy buttons */
 	for (i = 0; i < DIM_BUTTON; i++)
