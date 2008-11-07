@@ -134,6 +134,11 @@ static void handle_state(LocalDevicePtr local,
 		xf86Msg(X_INFO, "motion: %d %d\n", dx, dy);
 		xf86PostMotionEvent(local->dev, 0, 0, 2, dx, dy);
 	}
+	for (i = 0; i < DIM_BUTTON; i++)
+		if (ns->button[i] != os->button[i])
+			xf86PostButtonEvent(local->dev, FALSE,
+					    i + 1, ns->button[i],
+					    0, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////
