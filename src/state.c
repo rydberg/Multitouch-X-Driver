@@ -36,12 +36,6 @@ static void set_finger(struct FingerState* fs,
 		fs->hw.width_minor = hw->width_major;
 }
 
-inline bool good_finger(const struct FingerState* fs)
-{
-	return fs->hw.touch_major > 0 && fs->hw.width_major > 0 &&
-		fs->hw.touch_minor > 0 && fs->hw.width_minor > 0;
-}
-
 /******************************************************/
 
 void modify_state(struct State *s,
@@ -49,43 +43,30 @@ void modify_state(struct State *s,
 		  const struct Capabilities* caps)
 {
 	float A[DIM2_FINGER], *row;
-	int id[DIM_FINGER], index[DIM_FINGER], i, j;
-	struct FingerState *fs = s->finger;
+	int sid[DIM_FINGER], hw2s[DIM_FINGER], id, sk, hwk;
 
-	for (j = 0; j < s->nfinger; j++) {
-		id[j] = s->finger[j].id;
-		row = A + hw->nfinger * j;
-		for (i = 0; i < hw->nfinger; i++)
-			row[i] = dist2(&hw->finger[i], &s->finger[j].hw);
+	/* setup distance matrix for finger id matching */
+	for (sk = 0; sk < s->nfinger; sk++) {
+		sid[sk] = s->finger[sk].id;
+		row = A + hw->nfinger * sk;
+		for (hwk = 0; hwk < hw->nfinger; hwk++)
+			row[hwk] = dist2(&hw->finger[hwk], &s->finger[sk].hw);
 	}
 
-	match_fingers(index, A, hw->nfinger, s->nfinger);
+	match_fingers(hw2s, A, hw->nfinger, s->nfinger);
 
 	/* update matched fingers and create new ones */
-	for (i = 0; i < hw->nfinger; i++) {
-		j = index[i];
-		if (j >= 0)
-			set_finger(fs, hw->finger + i, id[j], caps);
-		else
-			set_finger(fs, hw->finger + i, ++s->lastid, caps);
-		if (good_finger(fs))
-			fs++;
+	for (hwk = 0; hwk < hw->nfinger; hwk++) {
+		sk = hw2s[hwk];
+		id = sk < 0 ? s->nextid++ : sid[sk];
+		set_finger(s->finger + hwk, hw->finger + hwk, id, caps);
 	}
-	s->nfinger = fs - s->finger;
+
+	s->button = hw->button;
+	s->nfinger = hw->nfinger;
 
 	/* sort fingers in touching order */
 	qsort(s->finger, s->nfinger, sizeof(struct FingerState), fincmp);
-
-	/* make sure wrap-around does not create very strange effects */
-	if (s->lastid > INT_MAX / 2) {
-		s->lastid = 0;
-		for (j = 0; j < s->nfinger; j++)
-			s->finger[j].id = ++s->lastid;
-	}
-
-	/* copy buttons */
-	for (i = 0; i < DIM_BUTTON; i++)
-		s->button[i] = hw->button[i];
 }
 
 /******************************************************/
@@ -107,7 +88,9 @@ void output_state(const struct State *s)
 {
 	int i;
 	xf86Msg(X_INFO, "buttons: %d%d%d\n",
-		s->button[0], s->button[1], s->button[2]);
+		GETBIT(s->button, MT_BUTTON_LEFT),
+		GETBIT(s->button, MT_BUTTON_MIDDLE),
+		GETBIT(s->button, MT_BUTTON_RIGHT));
 	xf86Msg(X_INFO, "fingers: %d\n",
 		s->nfinger);
 	for (i = 0; i < s->nfinger; i++) {

@@ -12,13 +12,9 @@ const float BIG_VALUE = 1e20;
 
 typedef unsigned short col_t;
 
-#define GETBIT2(m, row, col) ((m[col]>>row)&1U)
-#define SETBIT2(m, row, col) (m[col]|=(1U<<row))
-#define CLEARBIT2(m, row, col) (m[col]&=~(1U<<row))
-
-#define GETBIT(m, x) ((m>>x)&1U)
-#define SETBIT(m, x) (m|=(1U<<x))
-#define CLEARBIT(m, x) (m&=~(1U<<x))
+#define GETBIT2(m, row, col) ((m[col]>>(row))&1U)
+#define SETBIT2(m, row, col) (m[col]|=(1U<<(row)))
+#define CLEARBIT2(m, row, col) (m[col]&=~(1U<<(row)))
 
 /********************************************************/
 

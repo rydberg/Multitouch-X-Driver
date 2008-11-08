@@ -11,7 +11,6 @@ void init_hwdata(struct HWData *hw)
 
 bool read_hwdata(struct HWData *hw, const struct input_event* ev)
 {
-	bool on = ev->value != 0;
 	switch (ev->type) {
 	case EV_SYN:
 		switch (ev->code) {
@@ -22,20 +21,29 @@ bool read_hwdata(struct HWData *hw, const struct input_event* ev)
 	case EV_KEY:
 		switch (ev->code) {
 		case BTN_LEFT:
-			hw->button[MT_BUTTON_LEFT] = on;
+			if (ev->value)
+				SETBIT(hw->button, MT_BUTTON_LEFT);
+			else
+				CLEARBIT(hw->button, MT_BUTTON_LEFT);
 			break;
 		case BTN_MIDDLE:
-			hw->button[MT_BUTTON_MIDDLE] = on;
+			if (ev->value)
+				SETBIT(hw->button, MT_BUTTON_MIDDLE);
+			else
+				CLEARBIT(hw->button, MT_BUTTON_MIDDLE);
 			break;
 		case BTN_RIGHT:
-			hw->button[MT_BUTTON_RIGHT] = on;
+			if (ev->value)
+				SETBIT(hw->button, MT_BUTTON_RIGHT);
+			else
+				CLEARBIT(hw->button, MT_BUTTON_RIGHT);
 			break;
 		case BTN_MT_REPORT_PACKET:
-			if (on)
+			if (ev->value)
 				hw->nfinger = 0;
 			break;
 		case BTN_MT_REPORT_FINGER:
-			if (!on && hw->nfinger < DIM_FINGER)
+			if (!ev->value && hw->nfinger < DIM_FINGER)
 				hw->nfinger++;
 			break;
 		}

@@ -9,6 +9,8 @@
 #define MT_BUTTON_MIDDLE 1
 #define MT_BUTTON_RIGHT 2
 
+typedef unsigned int button_t;
+
 ////////////////////////////////////////////////////////
 
 struct FingerData {
@@ -22,7 +24,8 @@ struct FingerData {
 
 struct HWData {
 	struct FingerData finger[DIM_FINGER];
-	int nfinger, button[DIM_BUTTON];
+	button_t button;
+	int nfinger;
 };
 
 ////////////////////////////////////////////////////////

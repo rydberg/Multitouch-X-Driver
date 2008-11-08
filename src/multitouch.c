@@ -128,7 +128,7 @@ static void handle_state(LocalDevicePtr local,
 			 const struct State *ns)
 {
 	const struct FingerState *fs, *p, *e = ns->finger + ns->nfinger;
-	int dx = 0, dy = 0, i;
+	int dx = 0, dy = 0, n = 0, i;
 	for (p = ns->finger; p != e; p++) {
 		if (fs = find_finger(os, p->id)) {
 			dx += p->hw.position_x - fs->hw.position_x;
@@ -136,15 +136,23 @@ static void handle_state(LocalDevicePtr local,
 		}
 	}
 	if (dx || dy) {
-		output_state(ns);
-		xf86Msg(X_INFO, "motion: %d %d\n", dx, dy);
 		xf86PostMotionEvent(local->dev, 0, 0, 2, dx, dy);
+		xf86Msg(X_INFO, "motion: %d %d\n", dx, dy);
+		n++;
 	}
-	for (i = 0; i < DIM_BUTTON; i++)
-		if (ns->button[i] != os->button[i])
+	for (i = 0; i < DIM_BUTTON; i++) {
+		if (GETBIT(ns->button, i) != GETBIT(os->button, i)) {
 			xf86PostButtonEvent(local->dev, FALSE,
-					    i + 1, ns->button[i],
+					    i, GETBIT(ns->button, i),
 					    0, 0);
+			xf86Msg(X_INFO, "button: %d -> %d\n",
+				i, GETBIT(ns->button, i));
+			n++;
+		}
+	}
+	if (n) {
+		output_state(ns);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////

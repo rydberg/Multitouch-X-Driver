@@ -13,6 +13,10 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 
+#define GETBIT(m, x) ((m>>(x))&1U)
+#define SETBIT(m, x) (m|=(1U<<(x)))
+#define CLEARBIT(m, x) (m&=~(1U<<(x)))
+
 typedef int bool;
 
 ////////////////////////////////////////////////////////
