@@ -22,11 +22,13 @@
  **************************************************************************/
 
 #include "mtouch.h"
+#include "mipointer.h"
 
 ////////////////////////////////////////////////////////////////////////////
 
 static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
 {
+	xf86Msg(X_INFO, "pointer_control\n");
 }
 
 static int pointer_property(DeviceIntPtr dev,
@@ -34,6 +36,7 @@ static int pointer_property(DeviceIntPtr dev,
 			    XIPropertyValuePtr prop,
 			    BOOL checkonly)
 {
+	xf86Msg(X_INFO, "pointer_property\n");
 	return Success;
 }
 
@@ -42,7 +45,7 @@ static int pointer_property(DeviceIntPtr dev,
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	unsigned char btmap[DIM_BUTTON];
+	unsigned char btmap[DIM_BUTTON +  1];
 	int i;
 
 	local->fd = xf86OpenSerial(local->options);
@@ -54,9 +57,11 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 		return -1;
 	xf86CloseSerial(local->fd);
 
-	for (i = 0; i < DIM_BUTTON; i++)
+	for (i = 0; i < DIM_BUTTON + 1; i++)
 		btmap[i] = i;
 
+	dev->public.on = FALSE;
+    
 	InitPointerDeviceStruct((DevicePtr)dev,
 				btmap,
 				DIM_BUTTON,
@@ -69,15 +74,15 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 				   mt->caps.abs_position_x.minimum,
 				   mt->caps.abs_position_x.maximum,
 				   1, 0, 1);
+	xf86InitValuatorDefaults(dev, 0);
 	xf86InitValuatorAxisStruct(dev, 1,
 				   mt->caps.abs_position_y.minimum,
 				   mt->caps.abs_position_y.maximum,
 				   1, 0, 1);
-	xf86InitValuatorDefaults(dev, 0);
 	xf86InitValuatorDefaults(dev, 1);
 
-	InitDeviceProperties(local);
-	XIRegisterPropertyHandler(dev, pointer_property, NULL, NULL);
+	//InitDeviceProperties(local);
+	//XIRegisterPropertyHandler(dev, pointer_property, NULL, NULL);
 
 	return 0;
 }
@@ -131,6 +136,7 @@ static void handle_state(LocalDevicePtr local,
 		}
 	}
 	if (dx || dy) {
+		output_state(ns);
 		xf86Msg(X_INFO, "motion: %d %d\n", dx, dy);
 		xf86PostMotionEvent(local->dev, 0, 0, 2, dx, dy);
 	}
@@ -150,11 +156,48 @@ static void read_input(LocalDevicePtr local)
 	if (local->fd >= 0) {
 		while (read_synchronized_event(mt, local->fd)) {
 			modify_state(&mt->ns, &mt->hw, &mt->caps);
-			//output_state(&mt->ns);
 			handle_state(local, &mt->os, &mt->ns);
 			mt->os = mt->ns;
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static int control_proc(LocalDevicePtr local, xDeviceCtl *control)
+{
+	xf86Msg(X_INFO, "control_proc\n");
+	return Success;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static void close_proc(LocalDevicePtr local)
+{
+	xf86Msg(X_INFO, "close_proc\n");
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static int switch_mode(ClientPtr client, DeviceIntPtr dev, int mode)
+{
+	xf86Msg(X_INFO, "switch mode\n");
+	return Success;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static Bool conversion_proc(LocalDevicePtr local, int first, int num,
+			    int v0, int v1, int v2, int v3, int v4, int v5,
+			    int *x, int *y)
+{
+    if (first != 0 || num != 2)
+	return FALSE;
+
+    *x = v0;
+    *y = v1;
+
+    return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -186,7 +229,7 @@ static Bool device_control(DeviceIntPtr dev, int mode)
 	default:
 		xf86Msg(X_INFO, "device control: default\n");
 		return BadValue;
-    }
+	}
 }
 
 
@@ -206,14 +249,25 @@ static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 	local->type_name = XI_TOUCHPAD;
 	local->device_control = device_control;
 	local->read_input = read_input;
+	local->control_proc = control_proc;
+	local->close_proc = close_proc;
+	local->switch_mode = switch_mode;
+	local->conversion_proc = conversion_proc;
+	local->reverse_conversion_proc = NULL;
+	local->dev = NULL;
 	local->private = mt;
 	local->private_flags = 0;
 	local->flags = XI86_POINTER_CAPABLE | XI86_SEND_DRAG_EVENTS;
 	local->conf_idev = dev;
 	local->always_core_feedback = 0;
-
+	
 	xf86CollectInputOptions(local, NULL, NULL);
 	xf86OptionListReport(local->options);
+
+	local->history_size = xf86SetIntOption(local->options,
+					       "HistorySize", 0);
+
+	xf86ProcessCommonOptions(local, local->options);
 
 	local->flags |= XI86_CONFIGURED;
  error:
