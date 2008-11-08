@@ -45,7 +45,7 @@ static int pointer_property(DeviceIntPtr dev,
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	unsigned char btmap[DIM_BUTTON +  1];
+	unsigned char btmap[DIM_BUTTON];
 	int i;
 
 	local->fd = xf86OpenSerial(local->options);
@@ -57,11 +57,9 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 		return -1;
 	xf86CloseSerial(local->fd);
 
-	for (i = 0; i < DIM_BUTTON + 1; i++)
+	for (i = 0; i < DIM_BUTTON; i++)
 		btmap[i] = i;
 
-	dev->public.on = FALSE;
-    
 	InitPointerDeviceStruct((DevicePtr)dev,
 				btmap,
 				DIM_BUTTON,
@@ -164,44 +162,6 @@ static void read_input(LocalDevicePtr local)
 
 ////////////////////////////////////////////////////////////////////////////
 
-static int control_proc(LocalDevicePtr local, xDeviceCtl *control)
-{
-	xf86Msg(X_INFO, "control_proc\n");
-	return Success;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-static void close_proc(LocalDevicePtr local)
-{
-	xf86Msg(X_INFO, "close_proc\n");
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-static int switch_mode(ClientPtr client, DeviceIntPtr dev, int mode)
-{
-	xf86Msg(X_INFO, "switch mode\n");
-	return Success;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
-static Bool conversion_proc(LocalDevicePtr local, int first, int num,
-			    int v0, int v1, int v2, int v3, int v4, int v5,
-			    int *x, int *y)
-{
-    if (first != 0 || num != 2)
-	return FALSE;
-
-    *x = v0;
-    *y = v1;
-
-    return TRUE;
-}
-
-////////////////////////////////////////////////////////////////////////////
-
 static Bool device_control(DeviceIntPtr dev, int mode)
 {
 	LocalDevicePtr local = dev->public.devicePrivate;
@@ -215,11 +175,9 @@ static Bool device_control(DeviceIntPtr dev, int mode)
 		xf86Msg(X_INFO, "device control: on\n");
 		if (device_on(local))
 			return !Success;
-		dev->public.on = TRUE;
 		return Success;
 	case DEVICE_OFF:
 		xf86Msg(X_INFO, "device control: off\n");
-		dev->public.on = FALSE;
 		device_off(local);
 		return Success;
 	case DEVICE_CLOSE:
@@ -249,24 +207,12 @@ static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 	local->type_name = XI_TOUCHPAD;
 	local->device_control = device_control;
 	local->read_input = read_input;
-	local->control_proc = control_proc;
-	local->close_proc = close_proc;
-	local->switch_mode = switch_mode;
-	local->conversion_proc = conversion_proc;
-	local->reverse_conversion_proc = NULL;
-	local->dev = NULL;
 	local->private = mt;
-	local->private_flags = 0;
 	local->flags = XI86_POINTER_CAPABLE | XI86_SEND_DRAG_EVENTS;
 	local->conf_idev = dev;
-	local->always_core_feedback = 0;
 	
 	xf86CollectInputOptions(local, NULL, NULL);
-	xf86OptionListReport(local->options);
-
-	local->history_size = xf86SetIntOption(local->options,
-					       "HistorySize", 0);
-
+	//xf86OptionListReport(local->options);
 	xf86ProcessCommonOptions(local, local->options);
 
 	local->flags |= XI86_CONFIGURED;
