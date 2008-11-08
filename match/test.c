@@ -24,8 +24,45 @@ static void test1()
 		942941.000000,
 		462820.000000,
 	};
-	int index[DIM_FINGER];
+	int index[DIM_FINGER], i;
 	match_fingers(index, A, 4, 4);
+	for (i = 0; i < 4; i++)
+		printf("match[%d] = %d\n", i, index[i]);
+}
+
+static void test2()
+{
+	float A[]={
+		0.000000,
+		4534330.000000,
+		22653552.000000,
+		12252500.000000,
+		685352.000000,
+		4534330.000000,
+		0.000000,
+		9619317.000000,
+		28409530.000000,
+		6710170.000000,
+		22653552.000000,
+		9619317.000000,
+		0.000000,
+		47015292.000000,
+		29788572.000000,
+		2809040.000000,
+		10428866.000000,
+		38615920.000000,
+		17732500.000000,
+		719528.000000,
+		12113945.000000,
+		28196220.000000,
+		46778656.000000,
+		405.000000,
+		14175493.000000,
+	};
+	int index[DIM_FINGER], i;
+	match_fingers(index, A, 5, 5);
+	for (i = 0; i < 5; i++)
+		printf("match[%d] = %d\n", i, index[i]);
 }
 
 static void speed1()
@@ -65,7 +102,12 @@ static void speed1()
 
 int main(int argc,char* argv[])
 {
+	printf("test1\n");
 	test1();
+	printf("test2\n");
+	test2();
+	printf("speed1\n");
 	speed1();
+	printf("done\n");
 	return 0;
 }
