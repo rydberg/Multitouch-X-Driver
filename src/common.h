@@ -30,6 +30,10 @@
 
 #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
+#define GETBIT(m, x) ((m>>(x))&1U)
+#define SETBIT(m, x) (m|=(1U<<(x)))
+#define CLEARBIT(m, x) (m&=~(1U<<(x)))
+
 ////////////////////////////////////////////////////////
 
 #endif

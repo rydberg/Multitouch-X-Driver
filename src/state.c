@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <limits.h>
 
+const double FTW = 0.1;
+const double FTS = 0.1;
+
 /******************************************************/
 
 void init_state(struct State *s)
@@ -36,6 +39,17 @@ static void set_finger(struct FingerState* fs,
 		fs->hw.width_minor = hw->width_major;
 }
 
+static bool touching_finger(const struct FingerData* hw,
+			    const struct Capabilities* caps)
+{
+	if (caps->has_touch_major && caps->has_width_major)
+		return hw->width_major > 0 &&
+			hw->touch_major > FTW * hw->width_major;
+	if (caps->has_touch_major)
+		hw->touch_major > FTS * caps->abs_touch_major.maximum;
+	return 1;
+}
+
 /******************************************************/
 
 void modify_state(struct State *s,
@@ -43,7 +57,8 @@ void modify_state(struct State *s,
 		  const struct Capabilities* caps)
 {
 	float A[DIM2_FINGER], *row;
-	int sid[DIM_FINGER], hw2s[DIM_FINGER], id, sk, hwk;
+	int sid[DIM_FINGER], hw2s[DIM_FINGER];
+	int id, sk, hwk;
 
 	/* setup distance matrix for finger id matching */
 	for (sk = 0; sk < s->nfinger; sk++) {
@@ -58,8 +73,12 @@ void modify_state(struct State *s,
 	/* update matched fingers and create new ones */
 	for (hwk = 0; hwk < hw->nfinger; hwk++) {
 		sk = hw2s[hwk];
-		id = sk < 0 ? s->nextid++ : sid[sk];
-		set_finger(s->finger + hwk, hw->finger + hwk, id, caps);
+		id = sk >= 0 ? sid[sk] : 0;
+		if (!touching_finger(&hw->finger[hwk], caps))
+			id = 0;
+		else while (!id)
+			id = ++s->lastid;
+		set_finger(&s->finger[hwk], &hw->finger[hwk], id, caps);
 	}
 
 	s->button = hw->button;
@@ -75,11 +94,24 @@ const struct FingerState *find_finger(const struct State *s, int id)
 {
 	int i;
 
+	if (!id)
+		return NULL;
 	for (i = 0; i < s->nfinger; i++)
 		if (s->finger[i].id == id)
 			return s->finger + i;
 
 	return NULL;
+}
+
+/******************************************************/
+
+int count_fingers(const struct State *s)
+{
+	int i, n = 0;
+	for (i = 0; i < s->nfinger; i++)
+		if (s->finger[i].id)
+			n++;
+	return n;
 }
 
 /******************************************************/
