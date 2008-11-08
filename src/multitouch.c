@@ -47,7 +47,7 @@ static int pointer_property(DeviceIntPtr dev,
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	unsigned char btmap[DIM_BUTTON]={0,1,2};
+	unsigned char btmap[DIM_BUTTON + 1]={0,1,2,3};
 
 	local->fd = xf86OpenSerial(local->options);
 	if (local->fd < 0) {
@@ -148,7 +148,7 @@ static void handle_state(LocalDevicePtr local,
 	for (i = 0; i < DIM_BUTTON; i++) {
 		if (GETBIT(ns->button, i) != GETBIT(os->button, i)) {
 			xf86PostButtonEvent(local->dev, FALSE,
-					    i, GETBIT(ns->button, i),
+					    i + 1, GETBIT(ns->button, i),
 					    0, 0);
 			//xf86Msg(X_INFO, "button: %d -> %d\n",
 			//i, GETBIT(ns->button, i));
