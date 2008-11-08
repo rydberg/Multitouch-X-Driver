@@ -31,6 +31,8 @@ static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
 	xf86Msg(X_INFO, "pointer_control\n");
 }
 
+////////////////////////////////////////////////////////////////////////////
+
 static int pointer_property(DeviceIntPtr dev,
 			    Atom property,
 			    XIPropertyValuePtr prop,
@@ -45,24 +47,21 @@ static int pointer_property(DeviceIntPtr dev,
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	unsigned char btmap[DIM_BUTTON];
-	int i;
+	unsigned char btmap[DIM_BUTTON]={0,1,2};
 
 	local->fd = xf86OpenSerial(local->options);
 	if (local->fd < 0) {
-		xf86Msg(X_ERROR, "multitouch: cannot configure device\n");
-		return local->fd;
+		xf86Msg(X_ERROR, "multitouch: cannot open device\n");
+		return !Success;
 	}
-	if (configure_mtouch(mt, local->fd))
-		return -1;
+	if (configure_mtouch(mt, local->fd)) {
+		xf86Msg(X_ERROR, "multitouch: cannot configure device\n");
+		return !Success;
+	}
 	xf86CloseSerial(local->fd);
 
-	for (i = 0; i < DIM_BUTTON; i++)
-		btmap[i] = i;
-
 	InitPointerDeviceStruct((DevicePtr)dev,
-				btmap,
-				DIM_BUTTON,
+				btmap, DIM_BUTTON,
 				GetMotionHistory,
 				pointer_control,
 				GetMotionHistorySize(),
@@ -79,10 +78,9 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 				   1, 0, 1);
 	xf86InitValuatorDefaults(dev, 1);
 
-	//InitDeviceProperties(local);
-	//XIRegisterPropertyHandler(dev, pointer_property, NULL, NULL);
+	XIRegisterPropertyHandler(dev, pointer_property, NULL, NULL);
 
-	return 0;
+	return Success;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -93,30 +91,34 @@ static int device_on(LocalDevicePtr local)
 	local->fd = xf86OpenSerial(local->options);
 	if (local->fd < 0) {
 		xf86Msg(X_ERROR, "multitouch: cannot open device\n");
-		return local->fd;
+		return !Success;
 	}
-	if (open_mtouch(mt, local->fd))
-		return -1;
+	if (open_mtouch(mt, local->fd)) {
+		xf86Msg(X_ERROR, "multitouch: cannot grab device\n");
+		return !Success;
+	}
 	xf86AddEnabledDevice(local);
-	return 0;
+	return Success;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
-static void device_off(LocalDevicePtr local)
+static int device_off(LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	if(local->fd < 0)
-		return;
 	xf86RemoveEnabledDevice(local);
-	close_mtouch(mt, local->fd);
+	if(close_mtouch(mt, local->fd)) {
+		xf86Msg(X_WARNING, "multitouch: cannot ungrab device\n");
+	}
 	xf86CloseSerial(local->fd);
+	return Success;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
-static void device_close(LocalDevicePtr local)
+static int device_close(LocalDevicePtr local)
 {
+	return Success;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -151,12 +153,10 @@ static void handle_state(LocalDevicePtr local,
 static void read_input(LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	if (local->fd >= 0) {
-		while (read_synchronized_event(mt, local->fd)) {
-			modify_state(&mt->ns, &mt->hw, &mt->caps);
-			handle_state(local, &mt->os, &mt->ns);
-			mt->os = mt->ns;
-		}
+	while (read_synchronized_event(mt, local->fd)) {
+		modify_state(&mt->ns, &mt->hw, &mt->caps);
+		handle_state(local, &mt->os, &mt->ns);
+		mt->os = mt->ns;
 	}
 }
 
@@ -168,22 +168,16 @@ static Bool device_control(DeviceIntPtr dev, int mode)
 	switch (mode) {
 	case DEVICE_INIT:
 		xf86Msg(X_INFO, "device control: init\n");
-		if (device_init(dev, local))
-			return !Success;
-		return Success;
+		return device_init(dev, local);
 	case DEVICE_ON:
 		xf86Msg(X_INFO, "device control: on\n");
-		if (device_on(local))
-			return !Success;
-		return Success;
+		return device_on(local);
 	case DEVICE_OFF:
 		xf86Msg(X_INFO, "device control: off\n");
-		device_off(local);
-		return Success;
+		return device_off(local);
 	case DEVICE_CLOSE:
 		xf86Msg(X_INFO, "device control: close\n");
-		device_close(local);
-		return Success;
+		return device_close(local);
 	default:
 		xf86Msg(X_INFO, "device control: default\n");
 		return BadValue;

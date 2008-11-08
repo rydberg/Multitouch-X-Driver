@@ -20,28 +20,17 @@ int open_mtouch(struct MTouch *mt, int fd)
 	init_hwdata(&mt->hw);
 	init_state(&mt->os);
 	init_state(&mt->ns);
-	if (mt->grabbed)
-		return 0;
 	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
-	if (rc < 0) {
-		xf86Msg(X_WARNING, "multitouch: cannot grab device\n");
-		return rc;
-	}
-	mt->grabbed = 1;
-	return 0;
+	return rc;
 }
 
 /******************************************************/
 
-void close_mtouch(struct MTouch *mt, int fd)
+int close_mtouch(struct MTouch *mt, int fd)
 {
 	int rc;
-	if (!mt->grabbed)
-		return;
 	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)0));
-	if (rc < 0)
-		xf86Msg(X_WARNING, "multitouch: cannot ungrab device\n");
-	mt->grabbed = 0;
+	return rc;
 }
 
 /******************************************************/
