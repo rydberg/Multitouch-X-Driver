@@ -4,7 +4,31 @@
 
 #define ITS 1000000
 
-int main(int argc,char* argv[])
+static void test1()
+{
+	float A[] = {
+		1013.000000,
+		3030660.000000,
+		3559354.000000,
+		12505925.000000,
+		19008450.000000,
+		6946421.000000,
+		6118613.000000,
+		698020.000000,
+		3021800.000000,
+		1017.000000,
+		37573.000000,
+		3242018.000000,
+		8152794.000000,
+		1266053.000000,
+		942941.000000,
+		462820.000000,
+	};
+	int index[DIM_FINGER];
+	match_fingers(index, A, 4, 4);
+}
+
+static void speed1()
 {
 	// column-by-column matrix
 	float A[DIM2_FINGER];
@@ -31,10 +55,17 @@ int main(int argc,char* argv[])
 		match_fingers(index, A, n1, n2);
 	clock_t t2 = clock();
 
-	printf("%lf matches per second\n", ITS * ((float)CLOCKS_PER_SEC / (t2 - t1)));
+	printf("%lf matches per second\n",
+	       ITS * ((float)CLOCKS_PER_SEC / (t2 - t1)));
 
 	for (i = 0; i < n1; i++)
 		printf("match[%d] = %d\n", i, index[i]);
 	
+}
+
+int main(int argc,char* argv[])
+{
+	test1();
+	speed1();
 	return 0;
 }

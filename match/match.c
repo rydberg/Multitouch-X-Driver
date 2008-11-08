@@ -43,7 +43,7 @@ static void step5 (int *ix, float *mdist, col_t *mstar, col_t *nmstar, col_t *mp
 static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 {
 	float *mdistTemp, *mdistEnd, *columnEnd, value, minValue;
-	int nelem, dmin, row, col;
+	int dmin, row, col;
 	col_t ccol,crow, mstar[DIM_FINGER],mprime[DIM_FINGER],nmstar[DIM_FINGER];
 
 	ccol = crow = 0;
@@ -56,8 +56,7 @@ static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 	for(row=0; row<nrows; row++)
 		ix[row] = -1;
 	
-	nelem   = nrows * ncols;
-	mdistEnd = mdist + nelem;
+	mdistEnd = mdist + nrows * ncols;
 
 	/* preliminary steps */
 	if(nrows <= ncols) {
@@ -141,7 +140,7 @@ static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 static void step2a(int *ix, float *mdist, col_t *mstar, col_t *nmstar, col_t *mprime, col_t ccol, col_t crow, int nrows, int ncols, int dmin)
 {
 	int col, row;
-	
+
 	/* cover every column containing a starred zero */
 	for(col=0; col<ncols; col++) {
 		for(row=col;row<nrows;row++) {
@@ -227,11 +226,9 @@ static void step3(int *ix, float *mdist, col_t *mstar, col_t *nmstar, col_t *mpr
 static void step4(int *ix, float *mdist, col_t *mstar, col_t *nmstar, col_t *mprime, col_t ccol, col_t crow, int nrows, int ncols, int dmin, int row, int col)
 {	
 	int n, rstar, cstar, primeRow, primeCol;
-	int nelem = nrows*ncols;
 	
 	/* generate temporary copy of mstar */
-	for(n=0; n<nelem; n++)
-		nmstar[n] = mstar[n];
+	memcpy(nmstar, mstar, sizeof(mstar));
 	
 	/* star current zero */
 	SETBIT2(nmstar, row, col);
@@ -265,13 +262,9 @@ static void step4(int *ix, float *mdist, col_t *mstar, col_t *nmstar, col_t *mpr
 
 	/* use temporary copy as new mstar */
 	/* delete all primes, uncover all rows */
-	for(n=0; n<nelem; n++)
-	{
-		mprime[n] = 0;
-		mstar[n]  = nmstar[n];
-	}
-	for(n=0; n<nrows; n++)
-		CLEARBIT(crow, n);
+	memset(mprime, 0, sizeof(mprime));
+	memcpy(mstar, nmstar, sizeof(nmstar));
+	crow = 0;
 	
 	/* move to step 2a */
 	step2a(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin);
