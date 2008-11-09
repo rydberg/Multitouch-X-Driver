@@ -39,16 +39,20 @@ bool read_hwdata(struct HWData *hw, const struct input_event* ev)
 				CLEARBIT(hw->button, MT_BUTTON_RIGHT);
 			break;
 		case BTN_MT_REPORT_PACKET:
+			hw->in_packet = ev->value;
 			if (ev->value)
 				hw->nfinger = 0;
 			break;
 		case BTN_MT_REPORT_FINGER:
+			hw->in_finger = ev->value;
 			if (!ev->value && hw->nfinger < DIM_FINGER)
 				hw->nfinger++;
 			break;
 		}
 		break;
 	case EV_ABS:
+		if (!hw->in_packet || !hw->in_finger)
+			break;
 		if (hw->nfinger == DIM_FINGER)
 			break;
 		switch (ev->code) {

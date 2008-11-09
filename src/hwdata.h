@@ -26,6 +26,7 @@ struct HWData {
 	struct FingerData finger[DIM_FINGER];
 	button_t button;
 	int nfinger;
+	bool in_packet, in_finger;
 };
 
 ////////////////////////////////////////////////////////
