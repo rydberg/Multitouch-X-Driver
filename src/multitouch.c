@@ -128,13 +128,13 @@ static void handle_gestures(LocalDevicePtr local,
 	int i;
 	if (GETBIT(gs->type, GS_MOVE)) {
 		xf86PostMotionEvent(local->dev, 0, 0, 2, gs->dx, gs->dy);
-		//xf86Msg(X_INFO, "motion: %d %d\n", dx, dy);
+		//xf86Msg(X_INFO, "motion: %d %d\n", gs->dx, gs->dy);
 	}
-	if (GETBIT(gs->type, GS_BUTTON)) {
-		for (i = 0; i < gs->nbt; i++)
-			xf86PostButtonEvent(local->dev, FALSE,
-					    gs->btix[i], gs->btval[i],
-					    0, 0);
+	for (i = 0; i < gs->nbt; i++) {
+		xf86PostButtonEvent(local->dev, FALSE,
+				    gs->btix[i], gs->btval[i],
+				    0, 0);
+		xf86Msg(X_INFO, "button: %d %d\n", gs->btix[i], gs->btval[i]);
 	}
 }
 
