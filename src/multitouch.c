@@ -21,8 +21,7 @@
  *
  **************************************************************************/
 
-#include "mtouch.h"
-#include "mipointer.h"
+#include "gestures.h"
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -123,40 +122,20 @@ static int device_close(LocalDevicePtr local)
 
 ////////////////////////////////////////////////////////////////////////////
 
-static void handle_state(LocalDevicePtr local,
-			 const struct State *os,
-			 const struct State *ns)
+static void handle_gestures(LocalDevicePtr local,
+			    const struct Gestures *gs)
 {
-	const struct FingerState *fs, *p, *e = ns->finger + ns->nfinger;
-	int dx = 0, dy = 0, dn = 0, n = 0, i;
-	if (count_fingers(ns) == count_fingers(os)) {
-		for (p = ns->finger; p != e; p++) {
-			if (fs = find_finger(os, p->id)) {
-				dx += p->hw.position_x - fs->hw.position_x;
-				dy += p->hw.position_y - fs->hw.position_y;
-				dn++;
-			}
-		}
-	}
-	if (dx || dy) {
-		dx /= dn;
-		dy /= dn;
-		xf86PostMotionEvent(local->dev, 0, 0, 2, dx, dy);
+	int i;
+	if (GETBIT(gs->type, GS_MOVE)) {
+		xf86PostMotionEvent(local->dev, 0, 0, 2, gs->dx, gs->dy);
 		//xf86Msg(X_INFO, "motion: %d %d\n", dx, dy);
-		n++;
 	}
-	for (i = 0; i < DIM_BUTTON; i++) {
-		if (GETBIT(ns->button, i) != GETBIT(os->button, i)) {
+	if (GETBIT(gs->type, GS_BUTTON)) {
+		for (i = 0; i < gs->nbt; i++)
 			xf86PostButtonEvent(local->dev, FALSE,
-					    i + 1, GETBIT(ns->button, i),
+					    gs->btix[i], gs->btval[i],
 					    0, 0);
-			//xf86Msg(X_INFO, "button: %d -> %d\n",
-			//i, GETBIT(ns->button, i));
-			n++;
-		}
 	}
-	//if (n)
-	//output_state(ns);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -164,11 +143,12 @@ static void handle_state(LocalDevicePtr local,
 /* called for each full received packet from the touchpad */
 static void read_input(LocalDevicePtr local)
 {
+	struct Gestures gs;
 	struct MTouch *mt = local->private;
 	while (read_synchronized_event(mt, local->fd)) {
-		modify_state(&mt->ns, &mt->hw, &mt->caps);
-		handle_state(local, &mt->os, &mt->ns);
-		mt->os = mt->ns;
+		parse_event(mt);
+		extract_gestures(&gs, mt);
+		handle_gestures(local, &gs);
 	}
 }
 

@@ -22,6 +22,7 @@ int open_mtouch(struct MTouch *mt, int fd);
 int close_mtouch(struct MTouch *mt, int fd);
 
 bool read_synchronized_event(struct MTouch *mt, int fd);
+void parse_event(struct MTouch *mt);
 
 ////////////////////////////////////////////////////////
 

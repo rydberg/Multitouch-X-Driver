@@ -45,3 +45,10 @@ bool read_synchronized_event(struct MTouch *mt, int fd)
 }
 
 /******************************************************/
+
+void parse_event(struct MTouch *mt)
+{
+	modify_state(&mt->ns, &mt->hw, &mt->caps);
+}
+
+/******************************************************/

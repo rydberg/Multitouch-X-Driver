@@ -9,6 +9,7 @@ o_src	= capabilities \
 	hwdata \
 	state \
 	mtouch \
+	gestures \
 	multitouch
 
 TARGETS	= $(addsuffix /test,$(MODULES))
