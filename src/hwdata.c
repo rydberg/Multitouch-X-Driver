@@ -49,6 +49,8 @@ bool read_hwdata(struct HWData *hw, const struct input_event* ev)
 		}
 		break;
 	case EV_ABS:
+		if (hw->nfinger == DIM_FINGER)
+			break;
 		switch (ev->code) {
 		case ABS_MT_TOUCH_MAJOR:
 			hw->finger[hw->nfinger].touch_major = ev->value;
