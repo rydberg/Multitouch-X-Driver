@@ -38,7 +38,7 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	int rc;
 
 	memset(cap, 0, sizeof(struct Capabilities));
-	
+
 	SYSCALL(rc = ioctl(fd, EVIOCGBIT(EV_SYN, sizeof(evbits)), evbits));
 	if (rc < 0)
 		return rc;
@@ -52,7 +52,6 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	cap->has_left = getbit(keybits, BTN_LEFT);
 	cap->has_middle = getbit(keybits, BTN_MIDDLE);
 	cap->has_right = getbit(keybits, BTN_RIGHT);
-	cap->has_mtdata = getbit(keybits, BTN_MT_REPORT_PACKET);
 
 	SETABS(cap, touch_major, absbits, ABS_MT_TOUCH_MAJOR, fd);
 	SETABS(cap, touch_minor, absbits, ABS_MT_TOUCH_MINOR, fd);
@@ -61,6 +60,8 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	SETABS(cap, orientation, absbits, ABS_MT_ORIENTATION, fd);
 	SETABS(cap, position_x, absbits, ABS_MT_POSITION_X, fd);
 	SETABS(cap, position_y, absbits, ABS_MT_POSITION_Y, fd);
+
+	cap->has_mtdata = cap->has_position_x && cap->has_position_y;
 
 	return 0;
 }
@@ -90,19 +91,19 @@ void output_capabilities(const struct Capabilities *cap)
 	if (cap->has_width_major)
 		xf86Msg(X_INFO, "multitouch: width: %d %d\n",
 			cap->abs_width_major.minimum,
-			cap->abs_width_major.maximum);		
+			cap->abs_width_major.maximum);
 	if (cap->has_orientation)
 		xf86Msg(X_INFO, "multitouch: orientation: %d %d\n",
 			cap->abs_orientation.minimum,
-			cap->abs_orientation.maximum);		
+			cap->abs_orientation.maximum);
 	if (cap->has_position_x)
 		xf86Msg(X_INFO, "multitouch: position_x: %d %d\n",
 			cap->abs_position_x.minimum,
-			cap->abs_position_x.maximum);		
+			cap->abs_position_x.maximum);
 	if (cap->has_position_y)
 		xf86Msg(X_INFO, "multitouch: position_y: %d %d\n",
 			cap->abs_position_y.minimum,
-			cap->abs_position_y.maximum);		
+			cap->abs_position_y.maximum);
 }
 
 ////////////////////////////////////////////////////////

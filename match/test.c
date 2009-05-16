@@ -78,7 +78,7 @@ static void speed1()
 	int n2 = 7;
 
 	int i, j;
-	
+
 	for (i = 0; i < n1; i++) {
 		for (j = 0; j < n2; j++) {
 			A[i + n1 * j] =
@@ -97,7 +97,7 @@ static void speed1()
 
 	for (i = 0; i < n1; i++)
 		printf("match[%d] = %d\n", i, index[i]);
-	
+
 }
 
 int main(int argc,char* argv[])

@@ -194,7 +194,7 @@ static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 	local->private = mt;
 	local->flags = XI86_POINTER_CAPABLE | XI86_SEND_DRAG_EVENTS;
 	local->conf_idev = dev;
-	
+
 	xf86CollectInputOptions(local, NULL, NULL);
 	//xf86OptionListReport(local->options);
 	xf86ProcessCommonOptions(local, local->options);

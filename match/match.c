@@ -59,25 +59,25 @@ static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 	/* initialization */
 	for(row=0; row<nrows; row++)
 		ix[row] = -1;
-	
+
 	mdistEnd = mdist + nrows * ncols;
 
 	/* preliminary steps */
 	if(nrows <= ncols) {
 		dmin = nrows;
-		
+
 		for(row=0; row<nrows; row++) {
 			/* find the smallest element in the row */
 			mdistTemp = mdist + row;
 			minValue = *mdistTemp;
-			mdistTemp += nrows;			
+			mdistTemp += nrows;
 			while(mdistTemp < mdistEnd) {
 				value = *mdistTemp;
 				if(value < minValue)
 					minValue = value;
 				mdistTemp += nrows;
 			}
-			
+
 			/* subtract the smallest element from each element of the row */
 			mdistTemp = mdist + row;
 			while(mdistTemp < mdistEnd) {
@@ -85,7 +85,7 @@ static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 				mdistTemp += nrows;
 			}
 		}
-		
+
 		/* Steps 1 and 2a */
 		for(row=0; row<nrows; row++)
 			for(col=0; col<ncols; col++)
@@ -97,25 +97,25 @@ static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 					}
 	} else {
 		dmin = ncols;
-		
+
 		for(col=0; col<ncols; col++) {
 			/* find the smallest element in the column */
 			mdistTemp = mdist     + nrows*col;
 			columnEnd      = mdistTemp + nrows;
-			
-			minValue = *mdistTemp++;			
+
+			minValue = *mdistTemp++;
 			while(mdistTemp < columnEnd) {
 				value = *mdistTemp++;
 				if(value < minValue)
 					minValue = value;
 			}
-			
+
 			/* subtract the smallest element from each element of the column */
 			mdistTemp = mdist + nrows*col;
 			while(mdistTemp < columnEnd)
 				*mdistTemp++ -= minValue;
 		}
-		
+
 		/* Steps 1 and 2a */
 		for(col=0; col<ncols; col++)
 			for(row=0; row<nrows; row++)
@@ -127,8 +127,8 @@ static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 						break;
 					}
 		memset(crow, 0, sizeof(col_t));
-	}	
-	
+	}
+
 	/* move to step 2b */
 	step2b(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin);
 }
@@ -145,9 +145,9 @@ static void step2a(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprim
 				SET1(ccol, col);
 				break;
 			}
-		}	
+		}
 	}
-	
+
 	/* move to step 3 */
 	step2b(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin);
 }
@@ -156,13 +156,13 @@ static void step2a(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprim
 static void step2b(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols, int dmin)
 {
 	int col, ncc;
-	
+
 	/* count covered columns */
 	ncc = 0;
 	for(col=0; col<ncols; col++)
 		if(GET1(ccol, col))
 			ncc++;
-	
+
 	if(ncc == dmin) {
 		/* algorithm finished */
 		buildixvector(ix, mstar, nrows, ncols);
@@ -170,7 +170,7 @@ static void step2b(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprim
 		/* move to step 3 */
 		step3(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin);
 	}
-	
+
 }
 
 /********************************************************/
@@ -181,19 +181,19 @@ static void step3(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprime
 
 	zerosFound = 1;
 	while(zerosFound) {
-		zerosFound = 0;		
+		zerosFound = 0;
 		for(col=0; col<ncols; col++)
 			if(!GET1(ccol,col))
 				for(row=0; row<nrows; row++)
 					if((!GET1(crow, row)) && (mdist[row + nrows*col] == 0)) {
 						/* prime zero */
 						SET2(mprime, row, col);
-						
+
 						/* find starred zero in current row */
 						for(cstar=0; cstar<ncols; cstar++)
 							if(GET2(mstar, row, cstar))
 								break;
-						
+
 						if(cstar == ncols) { /* no starred zero found */
 							/* move to step 4 */
 							step4(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin, row, col);
@@ -206,19 +206,19 @@ static void step3(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprime
 						}
 					}
 	}
-	
+
 	/* move to step 5 */
 	step5(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin);
 }
 
 /********************************************************/
 static void step4(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols, int dmin, int row, int col)
-{	
+{
 	int n, rstar, cstar, primeRow, primeCol;
 
 	/* generate temporary copy of mstar */
 	memcpy(nmstar, mstar, sizeof(mat_t));
-	
+
 	/* star current zero */
 	SET2(nmstar, row, col);
 
@@ -231,29 +231,29 @@ static void step4(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprime
 	while(rstar<nrows) {
 		/* unstar the starred zero */
 		CLEAR2(nmstar, rstar, cstar);
-		
+
 		/* find primed zero in current row */
 		primeRow = rstar;
 		for(primeCol=0; primeCol<ncols; primeCol++)
 			if(GET2(mprime, primeRow, primeCol))
 				break;
-		
+
 		/* star the primed zero */
 		SET2(nmstar, primeRow, primeCol);
-		
+
 		/* find starred zero in current column */
 		cstar = primeCol;
 		for(rstar=0; rstar<nrows; rstar++)
 			if(GET2(mstar, rstar, cstar))
 				break;
-	}	
-	
+	}
+
 	/* use temporary copy as new mstar */
 	/* delete all primes, uncover all rows */
 	memcpy(mstar, nmstar, sizeof(mat_t));
 	memset(mprime, 0, sizeof(mat_t));
 	memset(crow, 0, sizeof(col_t));
-	
+
 	/* move to step 2a */
 	step2a(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin);
 }
@@ -275,23 +275,23 @@ static void step5(int *ix, float *mdist, mat_t mstar, mat_t nmstar, mat_t mprime
 						found = 1;
 					}
 				}
-	
+
 	/* where to go if nothing uncovered? */
 	if (!found)
 		return;
-	
+
 	/* add h to each covered row */
 	for(row=0; row<nrows; row++)
 		if(GET1(crow, row))
 			for(col=0; col<ncols; col++)
 				mdist[row + nrows*col] += h;
-	
+
 	/* subtract h from each uncovered column */
 	for(col=0; col<ncols; col++)
 		if(!GET1(ccol,col))
 			for(row=0; row<nrows; row++)
 				mdist[row + nrows*col] -= h;
-	
+
 	/* move to step 3 */
 	step3(ix, mdist, mstar, nmstar, mprime, ccol, crow, nrows, ncols, dmin);
 }
