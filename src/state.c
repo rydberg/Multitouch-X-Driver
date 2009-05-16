@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
-const double FTW = 0.1;
-const double FTS = 0.1;
+const double FTW = 0.05;
+const double FTS = 0.05;
 
 /******************************************************/
 

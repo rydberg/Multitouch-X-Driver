@@ -120,19 +120,58 @@ static int device_close(LocalDevicePtr local)
 
 ////////////////////////////////////////////////////////////////////////////
 
-static void handle_gestures(LocalDevicePtr local,
-			    const struct Gestures *gs)
+static void tickle_button(LocalDevicePtr local, int id)
 {
+	xf86PostButtonEvent(local->dev, FALSE, id, 1, 0, 0);
+	xf86PostButtonEvent(local->dev, FALSE, id, 0, 0, 0);
+}
+
+////////////////////////////////////////////////////////////////////////////
+
+static void handle_gestures(LocalDevicePtr local,
+			    const struct Gestures *gs,
+			    const struct Capabilities *caps)
+{
+	static int vscroll, hscroll;
 	int i;
-	if (GETBIT(gs->type, GS_MOVE)) {
-		xf86PostMotionEvent(local->dev, 0, 0, 2, gs->dx, gs->dy);
-		//xf86Msg(X_INFO, "motion: %d %d\n", gs->dx, gs->dy);
-	}
 	for (i = 0; i < gs->nbt; i++) {
 		xf86PostButtonEvent(local->dev, FALSE,
 				    gs->btix[i], gs->btval[i],
 				    0, 0);
 		xf86Msg(X_INFO, "button: %d %d\n", gs->btix[i], gs->btval[i]);
+	}
+	if (GETBIT(gs->type, GS_MOVE)) {
+		xf86PostMotionEvent(local->dev, 0, 0, 2,
+				    gs->dx, gs->dy);
+		xf86Msg(X_INFO, "motion: %d %d\n", gs->dx, gs->dy);
+	}
+	if (GETBIT(gs->type, GS_VSCROLL)) {
+		int vstep = 0.03 * (caps->abs_position_y.maximum -
+				    caps->abs_position_y.minimum);
+		vscroll += gs->dy;
+		while (vscroll > vstep) {
+			tickle_button(local, 5);
+			vscroll -= vstep;
+		}
+		while (vscroll < -vstep) {
+			tickle_button(local, 4);
+			vscroll += vstep;
+		}
+		xf86Msg(X_INFO, "vscroll: %d\n", gs->dy);
+	}
+	if (GETBIT(gs->type, GS_HSCROLL)) {
+		int hstep = 0.1 * (caps->abs_position_x.maximum -
+				   caps->abs_position_x.minimum);
+		hscroll += gs->dx;
+		while (hscroll > hstep) {
+			tickle_button(local, 6);
+			hscroll -= hstep;
+		}
+		while (hscroll < -hstep) {
+			tickle_button(local, 7);
+			hscroll += hstep;
+		}
+		xf86Msg(X_INFO, "hscroll: %d\n", gs->dx);
 	}
 }
 
@@ -146,7 +185,7 @@ static void read_input(LocalDevicePtr local)
 	while (read_synchronized_event(mt, local->fd)) {
 		parse_event(mt);
 		extract_gestures(&gs, mt);
-		handle_gestures(local, &gs);
+		handle_gestures(local, &gs, &mt->caps);
 	}
 }
 

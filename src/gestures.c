@@ -25,6 +25,16 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 		gs->dy /= dn;
 		if (nsf == 1)
 			SETBIT(gs->type, GS_MOVE);
+		if (nsf == 2)
+			SETBIT(gs->type, GS_VSCROLL);
+		if (nsf == 3)
+			SETBIT(gs->type, GS_HSCROLL);
+	}
+	if (mt->ns.button == (1U << MT_BUTTON_LEFT)) {
+		if (nsf == 2)
+			mt->ns.button = (1U << MT_BUTTON_RIGHT);
+		if (nsf == 3)
+			mt->ns.button = (1U << MT_BUTTON_MIDDLE);
 	}
 	for (i = 0; i < DIM_BUTTON; i++) {
 		if (GETBIT(mt->ns.button, i) != GETBIT(mt->os.button, i)) {
