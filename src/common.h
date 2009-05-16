@@ -8,25 +8,28 @@
 #include <linux/input.h>
 #include <errno.h>
 #include <match/match.h>
-//#include <exevents.h>
 
 ////////////////////////////////////////////////////////
-//#define BTN_MT_REPORT_PACKET	0x210	/* report multitouch packet data */
-//#define BTN_MT_REPORT_FINGER	0x211	/* report multitouch finger data */
-#define BTN_TOOL_PRESS		0x148	/* The trackpad is a physical button */
-#define BTN_MT_REPORT_PACKET	0x14b	/* multitouch device */
-#define BTN_MT_REPORT_FINGER	0x14c	/* multitouch device */
-#define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
 
-#define ABS_MT_TOUCH		0x30
-#define ABS_MT_TOUCH_MAJOR	0x30
-#define ABS_MT_TOUCH_MINOR	0x31
-#define ABS_MT_WIDTH		0x32
-#define ABS_MT_WIDTH_MAJOR	0x32
-#define ABS_MT_WIDTH_MINOR	0x33
-#define ABS_MT_ORIENTATION	0x34
-#define ABS_MT_POSITION_X	0x35
-#define ABS_MT_POSITION_Y	0x36
+// includes available in 2.6.30-rc5
+
+#ifndef BTN_TOOL_QUADTAP
+#define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
+#define ABS_MT_TOUCH_MAJOR	0x30	/* Major axis of touching ellipse */
+#define ABS_MT_TOUCH_MINOR	0x31	/* Minor axis (omit if circular) */
+#define ABS_MT_WIDTH_MAJOR	0x32	/* Major axis of approaching ellipse */
+#define ABS_MT_WIDTH_MINOR	0x33	/* Minor axis (omit if circular) */
+#define ABS_MT_ORIENTATION	0x34	/* Ellipse orientation */
+#define ABS_MT_POSITION_X	0x35	/* Center X ellipse position */
+#define ABS_MT_POSITION_Y	0x36	/* Center Y ellipse position */
+#define ABS_MT_TOOL_TYPE	0x37	/* Type of touching device */
+#define ABS_MT_BLOB_ID		0x38	/* Group a set of packets as a blob */
+#define SYN_MT_REPORT		2
+#define MT_TOOL_FINGER		0
+#define MT_TOOL_PEN		1
+#endif
+
+////////////////////////////////////////////////////////
 
 #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
