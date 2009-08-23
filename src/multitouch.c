@@ -57,12 +57,22 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 	}
 	xf86CloseSerial(local->fd);
 
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 3
 	InitPointerDeviceStruct((DevicePtr)dev,
 				btmap, DIM_BUTTON,
 				GetMotionHistory,
 				pointer_control,
 				GetMotionHistorySize(),
 				2);
+#elif GET_ABI_MAJOR(ABI_XINPUT_VERSION) < 7
+	InitPointerDeviceStruct((DevicePtr)dev,
+				btmap, DIM_BUTTON,
+				pointer_control,
+				GetMotionHistorySize(),
+				2);
+#else
+#error "Unsupported ABI_XINPUT_VERSION"
+#endif
 
 	xf86InitValuatorAxisStruct(dev, 0,
 				   mt->caps.abs_position_x.minimum,
