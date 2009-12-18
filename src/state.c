@@ -46,7 +46,7 @@ static bool touching_finger(const struct FingerData* hw,
 		return hw->width_major > 0 &&
 			hw->touch_major > FTW * hw->width_major;
 	if (caps->has_touch_major)
-		hw->touch_major > FTS * caps->abs_touch_major.maximum;
+		return hw->touch_major > FTS * caps->abs_touch_major.maximum;
 	return 1;
 }
 
