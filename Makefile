@@ -29,7 +29,7 @@ DLIB	= usr/lib/xorg/modules/input
 DFDI	= usr/share/hal/fdi/policy/20thirdparty
 
 INCLUDE = -I. -I/usr/include/xorg -I/usr/include/pixman-1
-OPTS	= -O3
+OPTS	= -O3 -fPIC
 
 .PHONY: all clean
 .PRECIOUS: obj/%.o

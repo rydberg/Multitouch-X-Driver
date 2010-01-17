@@ -9,6 +9,7 @@
 #define GS_MOVE 1
 #define GS_VSCROLL 2
 #define GS_HSCROLL 3
+#define SYN_MAX_BUTTONS 12                    /* Max number of mouse buttons */
 
 ////////////////////////////////////////////////////////
 

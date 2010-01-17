@@ -21,6 +21,12 @@
 
 #include "gestures.h"
 
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
+#include <X11/Xatom.h>
+#include <xserver-properties.h>
+#endif
+
+
 ////////////////////////////////////////////////////////////////////////////
 
 static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
@@ -41,10 +47,60 @@ static int pointer_property(DeviceIntPtr dev,
 
 ////////////////////////////////////////////////////////////////////////////
 
+
+
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
+static void InitAxesLabels(Atom *labels, int nlabels)
+{
+	memset(labels, 0, nlabels * sizeof(Atom));
+	switch(nlabels)
+	{
+		default:
+		case 2:
+			labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
+		case 1:
+			labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
+			break;
+	}
+}
+
+static void InitButtonLabels(Atom *labels, int nlabels)
+{
+	memset(labels, 0, nlabels * sizeof(Atom));
+	switch(nlabels)
+	{
+		default:
+		case 7:
+			labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+		case 6:
+			labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+		case 5:
+			labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+		case 4:
+			labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+		case 3:
+			labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+		case 2:
+			labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+		case 1:
+			labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+			break;
+	}
+}
+#endif
+
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
 	unsigned char btmap[DIM_BUTTON + 1]={0,1,2,3};
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
+	Atom btn_labels[SYN_MAX_BUTTONS] = { 0 };
+	Atom axes_labels[2] = { 0 };
+
+	InitAxesLabels(axes_labels, 2);
+	InitButtonLabels(btn_labels, SYN_MAX_BUTTONS);
+#endif
+
 
 	local->fd = xf86OpenSerial(local->options);
 	if (local->fd < 0) {
@@ -70,16 +126,28 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 				pointer_control,
 				GetMotionHistorySize(),
 				2);
+#elif GET_ABI_MAJOR(ABI_XINPUT_VERSION) == 7
+	InitPointerDeviceStruct((DevicePtr)dev,
+				btmap, DIM_BUTTON, btn_labels,
+				pointer_control,
+				GetMotionHistorySize(),
+				2, axes_labels);
 #else
 #error "Unsupported ABI_XINPUT_VERSION"
 #endif
 
 	xf86InitValuatorAxisStruct(dev, 0,
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
+					axes_labels[0],
+#endif
 				   mt->caps.abs_position_x.minimum,
 				   mt->caps.abs_position_x.maximum,
 				   1, 0, 1);
 	xf86InitValuatorDefaults(dev, 0);
 	xf86InitValuatorAxisStruct(dev, 1,
+#if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
+					axes_labels[1],
+#endif
 				   mt->caps.abs_position_y.minimum,
 				   mt->caps.abs_position_y.maximum,
 				   1, 0, 1);
