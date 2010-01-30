@@ -26,6 +26,11 @@
 #include <xserver-properties.h>
 #endif
 
+////////////////////////////////////////////////////////////////////////////
+
+// these should be user-configurable at some point
+static const float vscroll_fraction = 0.05;
+static const float hscroll_fraction = 0.2;
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +97,7 @@ static void InitButtonLabels(Atom *labels, int nlabels)
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	unsigned char btmap[DIM_BUTTON + 1]={0,1,2,3};
+	unsigned char btmap[DIM_BUTTON + 1]={0,1,2,3,4,5,6,7};
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 	Atom btn_labels[SYN_MAX_BUTTONS] = { 0 };
 	Atom axes_labels[2] = { 0 };
@@ -211,6 +216,12 @@ static void handle_gestures(LocalDevicePtr local,
 			    const struct Capabilities *caps)
 {
 	static int vscroll, hscroll;
+   int vstep = 1 +
+      vscroll_fraction * (caps->abs_position_y.maximum -
+                          caps->abs_position_y.minimum);
+   int hstep = 1 +
+      hscroll_fraction * (caps->abs_position_x.maximum -
+                          caps->abs_position_x.minimum);
 	int i;
 	for (i = 0; i < gs->nbt; i++) {
 		xf86PostButtonEvent(local->dev, FALSE,
@@ -224,8 +235,6 @@ static void handle_gestures(LocalDevicePtr local,
 		xf86Msg(X_INFO, "motion: %d %d\n", gs->dx, gs->dy);
 	}
 	if (GETBIT(gs->type, GS_VSCROLL)) {
-		int vstep = 0.03 * (caps->abs_position_y.maximum -
-				    caps->abs_position_y.minimum);
 		vscroll += gs->dy;
 		while (vscroll > vstep) {
 			tickle_button(local, 5);
@@ -238,8 +247,6 @@ static void handle_gestures(LocalDevicePtr local,
 		xf86Msg(X_INFO, "vscroll: %d\n", gs->dy);
 	}
 	if (GETBIT(gs->type, GS_HSCROLL)) {
-		int hstep = 0.1 * (caps->abs_position_x.maximum -
-				   caps->abs_position_x.minimum);
 		hscroll += gs->dx;
 		while (hscroll > hstep) {
 			tickle_button(local, 6);

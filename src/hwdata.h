@@ -24,7 +24,7 @@
 
 #include "common.h"
 
-#define DIM_BUTTON 3
+#define DIM_BUTTON 7
 
 #define MT_BUTTON_LEFT 0
 #define MT_BUTTON_MIDDLE 1
