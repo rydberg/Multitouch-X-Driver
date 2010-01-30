@@ -341,6 +341,7 @@ static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 static void uninit(InputDriverPtr drv, InputInfoPtr local, int flags)
 {
 	xfree(local->private);
+   local->private = 0;
 	xf86DeleteInput(local, 0);
 }
 
