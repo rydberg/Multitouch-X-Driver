@@ -32,6 +32,15 @@
 static const float vscroll_fraction = 0.05;
 static const float hscroll_fraction = 0.2;
 
+// flip these to enable event debugging
+#if 1
+#define TRACE1(format, arg1)
+#define TRACE2(format, arg1, arg2)
+#else
+#define TRACE1(format, arg1) xf86Msg(X_INFO, format, arg1)
+#define TRACE2(format, arg1, arg2) xf86Msg(X_INFO, format, arg1, arg2)
+#endif
+
 ////////////////////////////////////////////////////////////////////////////
 
 static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
@@ -227,12 +236,12 @@ static void handle_gestures(LocalDevicePtr local,
 		xf86PostButtonEvent(local->dev, FALSE,
 				    gs->btix[i], gs->btval[i],
 				    0, 0);
-		xf86Msg(X_INFO, "button: %d %d\n", gs->btix[i], gs->btval[i]);
+		TRACE2("button: %d %d\n", gs->btix[i], gs->btval[i]);
 	}
 	if (GETBIT(gs->type, GS_MOVE)) {
 		xf86PostMotionEvent(local->dev, 0, 0, 2,
 				    gs->dx, gs->dy);
-		xf86Msg(X_INFO, "motion: %d %d\n", gs->dx, gs->dy);
+		TRACE2("motion: %d %d\n", gs->dx, gs->dy);
 	}
 	if (GETBIT(gs->type, GS_VSCROLL)) {
 		vscroll += gs->dy;
@@ -244,7 +253,7 @@ static void handle_gestures(LocalDevicePtr local,
 			tickle_button(local, 4);
 			vscroll += vstep;
 		}
-		xf86Msg(X_INFO, "vscroll: %d\n", gs->dy);
+		TRACE1("vscroll: %d\n", gs->dy);
 	}
 	if (GETBIT(gs->type, GS_HSCROLL)) {
 		hscroll += gs->dx;
@@ -256,7 +265,7 @@ static void handle_gestures(LocalDevicePtr local,
 			tickle_button(local, 7);
 			hscroll += hstep;
 		}
-		xf86Msg(X_INFO, "hscroll: %d\n", gs->dx);
+		TRACE1("hscroll: %d\n", gs->dx);
 	}
 }
 
