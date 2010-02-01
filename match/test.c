@@ -53,7 +53,7 @@ static void test1()
 
 static void test2()
 {
-	float A[]={
+	float A[] = {
 		0.000000,
 		4534330.000000,
 		22653552.000000,
@@ -88,12 +88,12 @@ static void test2()
 
 static void speed1()
 {
-	// column-by-column matrix
+	/* column-by-column matrix */
 	float A[DIM2_FINGER];
-	float x1[DIM_FINGER]={1,5,2,3,4,5,6,7,8};
-	float y1[DIM_FINGER]={1,5,2,3,4,5.1,6,7,8};
-	float x2[DIM_FINGER]={1.1,3,2,4,5,6,7,8};
-	float y2[DIM_FINGER]={1,3,2,4,5,6,7,8};
+	float x1[DIM_FINGER] = { 1, 5, 2, 3, 4, 5, 6, 7, 8 };
+	float y1[DIM_FINGER] = { 1, 5, 2, 3, 4, 5.1, 6, 7, 8 };
+	float x2[DIM_FINGER] = { 1.1, 3, 2, 4, 5, 6, 7, 8 };
+	float y2[DIM_FINGER] = { 1, 3, 2, 4, 5, 6, 7, 8 };
 	int index[DIM_FINGER];
 	int n1 = 4;
 	int n2 = 7;
@@ -121,7 +121,7 @@ static void speed1()
 
 }
 
-int main(int argc,char* argv[])
+int main(int argc, char *argv[])
 {
 	printf("test1\n");
 	test1();
