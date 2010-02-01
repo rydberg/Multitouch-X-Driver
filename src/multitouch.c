@@ -41,6 +41,9 @@ static const float hscroll_fraction = 0.2;
 #define TRACE2(format, arg1, arg2) xf86Msg(X_INFO, format, arg1, arg2)
 #endif
 
+// button mapping simplified
+#define PROPMAP(m, x, y) m[x] = XIGetKnownProperty(y)
+
 ////////////////////////////////////////////////////////////////////////////
 
 static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
@@ -61,45 +64,24 @@ static int pointer_property(DeviceIntPtr dev,
 
 ////////////////////////////////////////////////////////////////////////////
 
-
-
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
-static void InitAxesLabels(Atom *labels, int nlabels)
+static void initAxesLabels(Atom map[2])
 {
-	memset(labels, 0, nlabels * sizeof(Atom));
-	switch(nlabels)
-	{
-		default:
-		case 2:
-			labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_Y);
-		case 1:
-			labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_X);
-			break;
-	}
+   memset(map, 0, 2 * sizeof(Atom));
+   PROPMAP(map, 0, AXIS_LABEL_PROP_REL_X);
+   PROPMAP(map, 1, AXIS_LABEL_PROP_REL_Y);
 }
 
-static void InitButtonLabels(Atom *labels, int nlabels)
+static void initButtonLabels(Atom map[DIM_BUTTON])
 {
-	memset(labels, 0, nlabels * sizeof(Atom));
-	switch(nlabels)
-	{
-		default:
-		case 7:
-			labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
-		case 6:
-			labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
-		case 5:
-			labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
-		case 4:
-			labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
-		case 3:
-			labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
-		case 2:
-			labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
-		case 1:
-			labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
-			break;
-	}
+   memset(map, 0, DIM_BUTTON * sizeof(Atom));
+   PROPMAP(map, MT_BUTTON_LEFT, BTN_LABEL_PROP_BTN_LEFT);
+   PROPMAP(map, MT_BUTTON_MIDDLE, BTN_LABEL_PROP_BTN_MIDDLE);
+   PROPMAP(map, MT_BUTTON_RIGHT, BTN_LABEL_PROP_BTN_RIGHT);
+   PROPMAP(map, MT_BUTTON_WHEEL_UP, BTN_LABEL_PROP_BTN_WHEEL_UP);
+   PROPMAP(map, MT_BUTTON_WHEEL_DOWN, BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+   PROPMAP(map, MT_BUTTON_HWHEEL_LEFT, BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+   PROPMAP(map, MT_BUTTON_HWHEEL_RIGHT, BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
 }
 #endif
 
@@ -108,13 +90,10 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 	struct MTouch *mt = local->private;
 	unsigned char btmap[DIM_BUTTON + 1]={0,1,2,3,4,5,6,7};
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
-	Atom btn_labels[SYN_MAX_BUTTONS] = { 0 };
-	Atom axes_labels[2] = { 0 };
-
-	InitAxesLabels(axes_labels, 2);
-	InitButtonLabels(btn_labels, SYN_MAX_BUTTONS);
+	Atom axes_labels[2], btn_labels[DIM_BUTTON];
+   initAxesLabels(axes_labels);
+	initButtonLabels(btn_labels);
 #endif
-
 
 	local->fd = xf86OpenSerial(local->options);
 	if (local->fd < 0) {
