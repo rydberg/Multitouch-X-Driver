@@ -54,9 +54,11 @@
 
 #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
-#define GETBIT(m, x) ((m>>(x))&1U)
-#define SETBIT(m, x) (m|=(1U<<(x)))
-#define CLEARBIT(m, x) (m&=~(1U<<(x)))
+#define BITMASK(x) (1U << (x))
+#define BITONES(x) (BITMASK(x) - 1U)
+#define GETBIT(m, x) (((m) >> (x)) & 1U)
+#define SETBIT(m, x) (m |= BITMASK(x))
+#define CLEARBIT(m, x) (m &= ~BITMASK(x))
 
 ////////////////////////////////////////////////////////
 
