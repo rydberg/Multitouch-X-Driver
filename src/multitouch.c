@@ -257,14 +257,13 @@ static void handle_gestures(LocalDevicePtr local,
 	}
 	if (GETBIT(gs->type, GS_HSCROLL)) {
 		hscroll += gs->dx;
-      // sweep is more natural as a one-time thing
-      if (hscroll > hstep) {
+		while (hscroll > hstep) {
 			tickle_button(local, 6);
-			hscroll = 0;
-      }
-		if (hscroll < -hstep) {
+			hscroll -= hstep;
+		}
+		while (hscroll < -hstep) {
 			tickle_button(local, 7);
-         hscroll = 0;
+			hscroll += hstep;
 		}
 		TRACE1("hscroll: %d\n", gs->dx);
 	}
