@@ -231,12 +231,13 @@ static void handle_gestures(LocalDevicePtr local,
    int hstep = 1 +
       hscroll_fraction * (caps->abs_position_x.maximum -
                           caps->abs_position_x.minimum);
-	int i;
-	for (i = 0; i < gs->nbt; i++) {
-		xf86PostButtonEvent(local->dev, FALSE,
-				    gs->btix[i], gs->btval[i],
-				    0, 0);
-		TRACE2("button: %d %d\n", gs->btix[i], gs->btval[i]);
+   int i;
+   for (i = 0; i < DIM_BUTTON; i++) {
+      if (GETBIT(gs->btmask, i)) {
+         xf86PostButtonEvent(local->dev, FALSE,
+                             i + 1, GETBIT(gs->btdata, i), 0, 0);
+         TRACE2("button bit: %d %d\n", i, GETBIT(gs->btdata, i));
+      }
 	}
 	if (GETBIT(gs->type, GS_MOVE)) {
 		xf86PostMotionEvent(local->dev, 0, 0, 2,

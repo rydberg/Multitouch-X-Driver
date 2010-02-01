@@ -37,7 +37,7 @@
 struct Gestures {
 	unsigned type;
 	int dx, dy;
-	int nbt, btix[DIM_BUTTON], btval[DIM_BUTTON];
+   button_t btmask, btdata;
 };
 
 ////////////////////////////////////////////////////////
