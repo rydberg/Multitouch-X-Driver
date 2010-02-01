@@ -29,6 +29,10 @@
 #define MT_BUTTON_LEFT 0
 #define MT_BUTTON_MIDDLE 1
 #define MT_BUTTON_RIGHT 2
+#define MT_BUTTON_WHEEL_UP 3
+#define MT_BUTTON_WHEEL_DOWN 4
+#define MT_BUTTON_HWHEEL_LEFT 5
+#define MT_BUTTON_HWHEEL_RIGHT 6
 
 typedef unsigned int button_t;
 
