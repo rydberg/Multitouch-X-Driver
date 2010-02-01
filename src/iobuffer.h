@@ -28,17 +28,11 @@
 #define DIM_EVENTS 64
 #define DIM_BUFFER (DIM_EVENTS * EVENT_SIZE)
 
-////////////////////////////////////////////////////////
-
 struct IOBuffer {
 	char begin[DIM_BUFFER], *at, *top, *end;
 };
 
-////////////////////////////////////////////////////////
-
 void init_iobuf(struct IOBuffer *buf);
-const struct input_event* get_iobuf_event(struct IOBuffer *buf, int fd);
-
-////////////////////////////////////////////////////////
+const struct input_event *get_iobuf_event(struct IOBuffer *buf, int fd);
 
 #endif

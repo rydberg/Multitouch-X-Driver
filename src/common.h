@@ -30,9 +30,7 @@
 #include <errno.h>
 #include <match/match.h>
 
-////////////////////////////////////////////////////////
-
-// includes available in 2.6.30-rc5
+/* includes available in 2.6.30-rc5 */
 
 #ifndef BTN_TOOL_QUADTAP
 #define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
@@ -50,8 +48,6 @@
 #define MT_TOOL_PEN		1
 #endif
 
-////////////////////////////////////////////////////////
-
 #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
 #define BITMASK(x) (1U << (x))
@@ -59,7 +55,5 @@
 #define GETBIT(m, x) (((m) >> (x)) & 1U)
 #define SETBIT(m, x) (m |= BITMASK(x))
 #define CLEARBIT(m, x) (m &= ~BITMASK(x))
-
-////////////////////////////////////////////////////////
 
 #endif

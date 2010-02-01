@@ -24,25 +24,16 @@
 
 #include "mtouch.h"
 
-////////////////////////////////////////////////////////
-
 #define GS_BUTTON 0
 #define GS_MOVE 1
 #define GS_VSCROLL 2
 #define GS_HSCROLL 3
 
-////////////////////////////////////////////////////////
-
 struct Gestures {
-	unsigned type;
+	unsigned type, btmask, btdata;
 	int dx, dy;
-   button_t btmask, btdata;
 };
 
-////////////////////////////////////////////////////////
-
 void extract_gestures(struct Gestures *gs, struct MTouch* mt);
-
-////////////////////////////////////////////////////////
 
 #endif

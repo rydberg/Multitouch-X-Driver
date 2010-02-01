@@ -34,7 +34,8 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 	memset(gs, 0, sizeof(struct Gestures));
 	if (nof == nsf) {
 		for (p = b; p != e; p++) {
-			if (fs = find_finger(&mt->os, p->id)) {
+			fs = find_finger(&mt->os, p->id);
+			if (fs) {
 				gs->dx += p->hw.position_x - fs->hw.position_x;
 				gs->dy += p->hw.position_y - fs->hw.position_y;
 				dn++;

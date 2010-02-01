@@ -26,21 +26,17 @@
 const double FTW = 0.05;
 const double FTS = 0.05;
 
-/******************************************************/
-
 void init_state(struct State *s)
 {
 	memset(s, 0, sizeof(struct State));
 }
 
-/******************************************************/
-
-static int fincmp(const void* a,const void* b)
+static int fincmp(const void *a, const void *b)
 {
 	return ((struct FingerState *)a)->id - ((struct FingerState *)b)->id;
 }
 
-inline float dist2(const struct FingerData* a,const struct FingerData* b)
+inline float dist2(const struct FingerData *a, const struct FingerData *b)
 {
 	float dx = a->position_x - b->position_x;
 	float dy = a->position_y - b->position_y;
@@ -48,9 +44,9 @@ inline float dist2(const struct FingerData* a,const struct FingerData* b)
 	return dx * dx + dy * dy;
 }
 
-static void set_finger(struct FingerState* fs,
-		       const struct FingerData* hw, int id,
-		       const struct Capabilities* caps)
+static void set_finger(struct FingerState *fs,
+		       const struct FingerData *hw, int id,
+		       const struct Capabilities *caps)
 {
 	fs->hw = *hw;
 	fs->id = id;
@@ -60,8 +56,8 @@ static void set_finger(struct FingerState* fs,
 		fs->hw.width_minor = hw->width_major;
 }
 
-static bool touching_finger(const struct FingerData* hw,
-			    const struct Capabilities* caps)
+static int touching_finger(const struct FingerData *hw,
+			   const struct Capabilities *caps)
 {
 	if (caps->has_touch_major && caps->has_width_major)
 		return hw->width_major > 0 &&
@@ -71,11 +67,9 @@ static bool touching_finger(const struct FingerData* hw,
 	return 1;
 }
 
-/******************************************************/
-
 void modify_state(struct State *s,
-		  const struct HWData* hw,
-		  const struct Capabilities* caps)
+		  const struct HWData *hw,
+		  const struct Capabilities *caps)
 {
 	float A[DIM2_FINGER], *row;
 	int sid[DIM_FINGER], hw2s[DIM_FINGER];
@@ -97,8 +91,9 @@ void modify_state(struct State *s,
 		id = sk >= 0 ? sid[sk] : 0;
 		if (!touching_finger(&hw->finger[hwk], caps))
 			id = 0;
-		else while (!id)
-			id = ++s->lastid;
+		else
+			while (!id)
+				id = ++s->lastid;
 		set_finger(&s->finger[hwk], &hw->finger[hwk], id, caps);
 	}
 
@@ -108,8 +103,6 @@ void modify_state(struct State *s,
 	/* sort fingers in touching order */
 	qsort(s->finger, s->nfinger, sizeof(struct FingerState), fincmp);
 }
-
-/******************************************************/
 
 const struct FingerState *find_finger(const struct State *s, int id)
 {
@@ -124,8 +117,6 @@ const struct FingerState *find_finger(const struct State *s, int id)
 	return NULL;
 }
 
-/******************************************************/
-
 int count_fingers(const struct State *s)
 {
 	int i, n = 0;
@@ -134,8 +125,6 @@ int count_fingers(const struct State *s)
 			n++;
 	return n;
 }
-
-/******************************************************/
 
 void output_state(const struct State *s)
 {
@@ -159,5 +148,3 @@ void output_state(const struct State *s)
 			s->finger[i].hw.position_y);
 	}
 }
-
-/******************************************************/

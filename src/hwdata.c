@@ -21,16 +21,12 @@
 
 #include "hwdata.h"
 
-/******************************************************/
-
 void init_hwdata(struct HWData *hw)
 {
 	memset(hw, 0, sizeof(struct HWData));
 }
 
-/******************************************************/
-
-bool read_hwdata(struct HWData *hw, const struct input_event* ev)
+int read_hwdata(struct HWData *hw, const struct input_event* ev)
 {
 	switch (ev->type) {
 	case EV_SYN:
@@ -97,10 +93,6 @@ bool read_hwdata(struct HWData *hw, const struct input_event* ev)
 	return 0;
 }
 
-/******************************************************/
-
 void output_hwdata(const struct HWData *hw)
 {
 }
-
-/******************************************************/

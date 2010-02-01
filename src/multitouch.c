@@ -26,13 +26,11 @@
 #include <xserver-properties.h>
 #endif
 
-////////////////////////////////////////////////////////////////////////////
-
-// these should be user-configurable at some point
+/* these should be user-configurable at some point */
 static const float vscroll_fraction = 0.05;
 static const float hscroll_fraction = 0.2;
 
-// flip these to enable event debugging
+/* flip these to enable event debugging */
 #if 1
 #define TRACE1(format, arg1)
 #define TRACE2(format, arg1, arg2)
@@ -41,17 +39,13 @@ static const float hscroll_fraction = 0.2;
 #define TRACE2(format, arg1, arg2) xf86Msg(X_INFO, format, arg1, arg2)
 #endif
 
-// button mapping simplified
+/* button mapping simplified */
 #define PROPMAP(m, x, y) m[x] = XIGetKnownProperty(y)
-
-////////////////////////////////////////////////////////////////////////////
 
 static void pointer_control(DeviceIntPtr dev, PtrCtrl *ctrl)
 {
 	xf86Msg(X_INFO, "pointer_control\n");
 }
-
-////////////////////////////////////////////////////////////////////////////
 
 static int pointer_property(DeviceIntPtr dev,
 			    Atom property,
@@ -62,36 +56,34 @@ static int pointer_property(DeviceIntPtr dev,
 	return Success;
 }
 
-////////////////////////////////////////////////////////////////////////////
-
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 static void initAxesLabels(Atom map[2])
 {
-   memset(map, 0, 2 * sizeof(Atom));
-   PROPMAP(map, 0, AXIS_LABEL_PROP_REL_X);
-   PROPMAP(map, 1, AXIS_LABEL_PROP_REL_Y);
+	memset(map, 0, 2 * sizeof(Atom));
+	PROPMAP(map, 0, AXIS_LABEL_PROP_REL_X);
+	PROPMAP(map, 1, AXIS_LABEL_PROP_REL_Y);
 }
 
 static void initButtonLabels(Atom map[DIM_BUTTON])
 {
-   memset(map, 0, DIM_BUTTON * sizeof(Atom));
-   PROPMAP(map, MT_BUTTON_LEFT, BTN_LABEL_PROP_BTN_LEFT);
-   PROPMAP(map, MT_BUTTON_MIDDLE, BTN_LABEL_PROP_BTN_MIDDLE);
-   PROPMAP(map, MT_BUTTON_RIGHT, BTN_LABEL_PROP_BTN_RIGHT);
-   PROPMAP(map, MT_BUTTON_WHEEL_UP, BTN_LABEL_PROP_BTN_WHEEL_UP);
-   PROPMAP(map, MT_BUTTON_WHEEL_DOWN, BTN_LABEL_PROP_BTN_WHEEL_DOWN);
-   PROPMAP(map, MT_BUTTON_HWHEEL_LEFT, BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
-   PROPMAP(map, MT_BUTTON_HWHEEL_RIGHT, BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+	memset(map, 0, DIM_BUTTON * sizeof(Atom));
+	PROPMAP(map, MT_BUTTON_LEFT, BTN_LABEL_PROP_BTN_LEFT);
+	PROPMAP(map, MT_BUTTON_MIDDLE, BTN_LABEL_PROP_BTN_MIDDLE);
+	PROPMAP(map, MT_BUTTON_RIGHT, BTN_LABEL_PROP_BTN_RIGHT);
+	PROPMAP(map, MT_BUTTON_WHEEL_UP, BTN_LABEL_PROP_BTN_WHEEL_UP);
+	PROPMAP(map, MT_BUTTON_WHEEL_DOWN, BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+	PROPMAP(map, MT_BUTTON_HWHEEL_LEFT, BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+	PROPMAP(map, MT_BUTTON_HWHEEL_RIGHT, BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
 }
 #endif
 
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	unsigned char btmap[DIM_BUTTON + 1]={0,1,2,3,4,5,6,7};
+	unsigned char btmap[DIM_BUTTON + 1] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 	Atom axes_labels[2], btn_labels[DIM_BUTTON];
-   initAxesLabels(axes_labels);
+	initAxesLabels(axes_labels);
 	initButtonLabels(btn_labels);
 #endif
 
@@ -131,7 +123,7 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 
 	xf86InitValuatorAxisStruct(dev, 0,
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
-					axes_labels[0],
+				   axes_labels[0],
 #endif
 				   mt->caps.abs_position_x.minimum,
 				   mt->caps.abs_position_x.maximum,
@@ -139,7 +131,7 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 	xf86InitValuatorDefaults(dev, 0);
 	xf86InitValuatorAxisStruct(dev, 1,
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
-					axes_labels[1],
+				   axes_labels[1],
 #endif
 				   mt->caps.abs_position_y.minimum,
 				   mt->caps.abs_position_y.maximum,
@@ -150,8 +142,6 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 
 	return Success;
 }
-
-////////////////////////////////////////////////////////////////////////////
 
 static int device_on(LocalDevicePtr local)
 {
@@ -169,27 +159,20 @@ static int device_on(LocalDevicePtr local)
 	return Success;
 }
 
-////////////////////////////////////////////////////////////////////////////
-
 static int device_off(LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
 	xf86RemoveEnabledDevice(local);
-	if(close_mtouch(mt, local->fd)) {
+	if (close_mtouch(mt, local->fd))
 		xf86Msg(X_WARNING, "multitouch: cannot ungrab device\n");
-	}
 	xf86CloseSerial(local->fd);
 	return Success;
 }
-
-////////////////////////////////////////////////////////////////////////////
 
 static int device_close(LocalDevicePtr local)
 {
 	return Success;
 }
-
-////////////////////////////////////////////////////////////////////////////
 
 static void tickle_button(LocalDevicePtr local, int id)
 {
@@ -197,26 +180,24 @@ static void tickle_button(LocalDevicePtr local, int id)
 	xf86PostButtonEvent(local->dev, FALSE, id, 0, 0, 0);
 }
 
-////////////////////////////////////////////////////////////////////////////
-
 static void handle_gestures(LocalDevicePtr local,
 			    const struct Gestures *gs,
 			    const struct Capabilities *caps)
 {
 	static int vscroll, hscroll;
-   int vstep = 1 +
-      vscroll_fraction * (caps->abs_position_y.maximum -
-                          caps->abs_position_y.minimum);
-   int hstep = 1 +
-      hscroll_fraction * (caps->abs_position_x.maximum -
-                          caps->abs_position_x.minimum);
-   int i;
-   for (i = 0; i < DIM_BUTTON; i++) {
-      if (GETBIT(gs->btmask, i)) {
-         xf86PostButtonEvent(local->dev, FALSE,
-                             i + 1, GETBIT(gs->btdata, i), 0, 0);
-         TRACE2("button bit: %d %d\n", i, GETBIT(gs->btdata, i));
-      }
+	int vstep = 1 +
+		vscroll_fraction * (caps->abs_position_y.maximum -
+				    caps->abs_position_y.minimum);
+	int hstep = 1 +
+		hscroll_fraction * (caps->abs_position_x.maximum -
+				    caps->abs_position_x.minimum);
+	int i;
+	for (i = 0; i < DIM_BUTTON; i++) {
+		if (GETBIT(gs->btmask, i)) {
+			xf86PostButtonEvent(local->dev, FALSE,
+					    i + 1, GETBIT(gs->btdata, i), 0, 0);
+			TRACE2("button bit: %d %d\n", i, GETBIT(gs->btdata, i));
+		}
 	}
 	if (GETBIT(gs->type, GS_MOVE)) {
 		xf86PostMotionEvent(local->dev, 0, 0, 2,
@@ -249,8 +230,6 @@ static void handle_gestures(LocalDevicePtr local,
 	}
 }
 
-////////////////////////////////////////////////////////////////////////////
-
 /* called for each full received packet from the touchpad */
 static void read_input(LocalDevicePtr local)
 {
@@ -262,8 +241,6 @@ static void read_input(LocalDevicePtr local)
 		handle_gestures(local, &gs, &mt->caps);
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////
 
 static Bool device_control(DeviceIntPtr dev, int mode)
 {
@@ -288,8 +265,6 @@ static Bool device_control(DeviceIntPtr dev, int mode)
 }
 
 
-////////////////////////////////////////////////////////////////////////////
-
 static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 {
 	struct MTouch *mt;
@@ -309,7 +284,7 @@ static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 	local->conf_idev = dev;
 
 	xf86CollectInputOptions(local, NULL, NULL);
-	//xf86OptionListReport(local->options);
+	/* xf86OptionListReport(local->options); */
 	xf86ProcessCommonOptions(local, local->options);
 
 	local->flags |= XI86_CONFIGURED;
@@ -320,11 +295,9 @@ static InputInfoPtr preinit(InputDriverPtr drv, IDevPtr dev, int flags)
 static void uninit(InputDriverPtr drv, InputInfoPtr local, int flags)
 {
 	xfree(local->private);
-   local->private = 0;
+	local->private = 0;
 	xf86DeleteInput(local, 0);
 }
-
-////////////////////////////////////////////////////////////////////////////
 
 static InputDriverRec MULTITOUCH = {
 	1,
@@ -356,5 +329,3 @@ static pointer setup(pointer module, pointer options, int *errmaj, int *errmin)
 }
 
 XF86ModuleData multitouchModuleData = {&VERSION, &setup, NULL };
-
-////////////////////////////////////////////////////////////////////////////

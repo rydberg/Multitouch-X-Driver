@@ -21,14 +21,10 @@
 
 #include "capabilities.h"
 
-////////////////////////////////////////////////////////
-
 #define SETABS(c, x, map, key, fd)					\
-	c->has_##x = getbit(map, key) && getabs(&c->abs_##x, key, fd)
+	(c->has_##x = getbit(map, key) && getabs(&c->abs_##x, key, fd))
 
 #define ADDCAP(s, c, x) strcat(s, c->has_##x ? " " #x : "")
-
-////////////////////////////////////////////////////////
 
 static const int bits_per_long = 8 * sizeof(long);
 
@@ -37,19 +33,17 @@ static inline int nlongs(int nbit)
 	return (nbit + bits_per_long - 1) / bits_per_long;
 }
 
-static inline bool getbit(const unsigned long* map, int key)
+static inline int getbit(const unsigned long *map, int key)
 {
 	return (map[key / bits_per_long] >> (key % bits_per_long)) & 0x01;
 }
 
-static bool getabs(struct input_absinfo *abs, int key, int fd)
+static int getabs(struct input_absinfo *abs, int key, int fd)
 {
 	int rc;
 	SYSCALL(rc = ioctl(fd, EVIOCGABS(key), abs));
 	return rc >= 0;
 }
-
-////////////////////////////////////////////////////////
 
 int read_capabilities(struct Capabilities *cap, int fd)
 {
@@ -86,8 +80,6 @@ int read_capabilities(struct Capabilities *cap, int fd)
 
 	return 0;
 }
-
-////////////////////////////////////////////////////////
 
 void output_capabilities(const struct Capabilities *cap)
 {
@@ -126,5 +118,3 @@ void output_capabilities(const struct Capabilities *cap)
 			cap->abs_position_y.minimum,
 			cap->abs_position_y.maximum);
 }
-
-////////////////////////////////////////////////////////

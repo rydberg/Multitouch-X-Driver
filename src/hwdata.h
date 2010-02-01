@@ -34,10 +34,6 @@
 #define MT_BUTTON_HWHEEL_LEFT 5
 #define MT_BUTTON_HWHEEL_RIGHT 6
 
-typedef unsigned int button_t;
-
-////////////////////////////////////////////////////////
-
 struct FingerData {
 	int touch_major, touch_minor;
 	int width_major, width_minor;
@@ -45,20 +41,14 @@ struct FingerData {
 	int position_x, position_y;
 };
 
-////////////////////////////////////////////////////////
-
 struct HWData {
 	struct FingerData finger[DIM_FINGER];
-	button_t button;
+	unsigned button;
 	int nfinger, nread;
 };
 
-////////////////////////////////////////////////////////
-
 void init_hwdata(struct HWData *hw);
-bool read_hwdata(struct HWData *hw, const struct input_event* ev);
+int read_hwdata(struct HWData *hw, const struct input_event* ev);
 void output_hwdata(const struct HWData *hw);
-
-////////////////////////////////////////////////////////
 
 #endif

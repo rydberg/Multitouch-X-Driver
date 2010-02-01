@@ -21,8 +21,6 @@
 
 #include "iobuffer.h"
 
-////////////////////////////////////////////////////////
-
 void init_iobuf(struct IOBuffer *buf)
 {
 	memset(buf, 0, sizeof(struct IOBuffer));
@@ -31,9 +29,7 @@ void init_iobuf(struct IOBuffer *buf)
 	buf->end = buf->begin + DIM_BUFFER;
 }
 
-////////////////////////////////////////////////////////
-
-const struct input_event* get_iobuf_event(struct IOBuffer *buf, int fd)
+const struct input_event *get_iobuf_event(struct IOBuffer *buf, int fd)
 {
 	const struct input_event *ev;
 	int n = buf->top - buf->at;
@@ -56,5 +52,3 @@ const struct input_event* get_iobuf_event(struct IOBuffer *buf, int fd)
 	buf->at += EVENT_SIZE;
 	return ev;
 }
-
-////////////////////////////////////////////////////////
