@@ -58,8 +58,8 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 		if (nsf == 3)
 			mt->ns.button = BITMASK(MT_BUTTON_MIDDLE);
 	}
-   gs->btmask = (mt->ns.button ^ mt->os.button) & BITONES(DIM_BUTTON);
-   gs->btdata = mt->ns.button & BITONES(DIM_BUTTON);
+	gs->btmask = (mt->ns.button ^ mt->os.button) & BITONES(DIM_BUTTON);
+	gs->btdata = mt->ns.button & BITONES(DIM_BUTTON);
 	mt->os = mt->ns;
 }
 
