@@ -185,12 +185,8 @@ static void handle_gestures(LocalDevicePtr local,
 			    const struct Capabilities *caps)
 {
 	static int vscroll, hscroll;
-	int vstep = 1 +
-		vscroll_fraction * (caps->abs_position_y.maximum -
-				    caps->abs_position_y.minimum);
-	int hstep = 1 +
-		hscroll_fraction * (caps->abs_position_x.maximum -
-				    caps->abs_position_x.minimum);
+	int vstep = 1 + vscroll_fraction * get_cap_ysize(caps);
+	int hstep = 1 + hscroll_fraction * get_cap_xsize(caps);
 	int i;
 	for (i = 0; i < DIM_BUTTON; i++) {
 		if (GETBIT(gs->btmask, i)) {

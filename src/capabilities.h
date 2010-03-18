@@ -41,6 +41,9 @@ struct Capabilities {
 };
 
 int read_capabilities(struct Capabilities *cap, int fd);
+int get_cap_xsize(const struct Capabilities *cap);
+int get_cap_ysize(const struct Capabilities *cap);
+
 void output_capabilities(const struct Capabilities *cap);
 
 #endif

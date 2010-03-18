@@ -81,6 +81,16 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	return 0;
 }
 
+int get_cap_xsize(const struct Capabilities *cap)
+{
+	return cap->abs_position_x.maximum - cap->abs_position_x.minimum;
+}
+
+int get_cap_ysize(const struct Capabilities *cap)
+{
+	return cap->abs_position_y.maximum - cap->abs_position_y.minimum;
+}
+
 void output_capabilities(const struct Capabilities *cap)
 {
 	char line[1024];
