@@ -31,9 +31,6 @@
 #define DIM_FINGER 32
 #define DIM2_FINGER (DIM_FINGER * DIM_FINGER)
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) < (b) ? (b) : (a))
-
 void match_fingers(int index[DIM_FINGER], int A[DIM2_FINGER],
 		   int nrow, int ncol);
 
