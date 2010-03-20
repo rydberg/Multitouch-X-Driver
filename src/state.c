@@ -36,10 +36,23 @@ static int fincmp(const void *a, const void *b)
 	return ((struct FingerState *)a)->id - ((struct FingerState *)b)->id;
 }
 
-inline float dist2(const struct FingerData *a, const struct FingerData *b)
+/* seander@cs.stanford.edu */
+inline unsigned abs32(int x)
 {
-	float dx = a->position_x - b->position_x;
-	float dy = a->position_y - b->position_y;
+	int const m = x >> 31;
+	return (x + m) ^ m;
+}
+
+inline int abs15(int x)
+{
+	return 32767 & abs32(x);
+}
+
+/* abslute scale is assumed to fit in 15 bits */
+inline int dist2(const struct FingerData *a, const struct FingerData *b)
+{
+	int dx = abs15(a->position_x - b->position_x);
+	int dy = abs15(a->position_y - b->position_y);
 
 	return dx * dx + dy * dy;
 }
@@ -71,7 +84,7 @@ void modify_state(struct State *s,
 		  const struct HWData *hw,
 		  const struct Capabilities *caps)
 {
-	float A[DIM2_FINGER], *row;
+	int A[DIM2_FINGER], *row;
 	int sid[DIM_FINGER], hw2s[DIM_FINGER];
 	int id, sk, hwk;
 

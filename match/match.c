@@ -64,25 +64,25 @@ static void buildixvector(int *ix, mat_t mstar, int nrows, int ncols)
 
 /********************************************************/
 
-static void step2a(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step2a(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		   mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		   int dmin);
-static void step2b(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step2b(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		   mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		   int dmin);
-static void step3(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step3(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		  mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		  int dmin);
-static void step4(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step4(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		  mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		  int dmin, int row, int col);
-static void step5(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step5(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		  mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		  int dmin);
 
-static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
+static void ixoptimal(int *ix, int *mdist, int nrows, int ncols)
 {
-	float *mdistTemp, *mdistEnd, *columnEnd, value, minValue;
+	int *mdistTemp, *mdistEnd, *columnEnd, value, minValue;
 	int dmin, row, col;
 	col_t ccol, crow;
 	mat_t mstar, mprime, nmstar;
@@ -181,7 +181,7 @@ static void ixoptimal(int *ix, float *mdist, int nrows, int ncols)
 }
 
 /********************************************************/
-static void step2a(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step2a(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		   mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		   int dmin)
 {
@@ -204,7 +204,7 @@ static void step2a(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
 }
 
 /********************************************************/
-static void step2b(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step2b(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		   mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		   int dmin)
 {
@@ -229,7 +229,7 @@ static void step2b(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
 }
 
 /********************************************************/
-static void step3(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step3(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		  mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		  int dmin)
 {
@@ -279,7 +279,7 @@ static void step3(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
 }
 
 /********************************************************/
-static void step4(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step4(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		  mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		  int dmin, int row, int col)
 {
@@ -330,11 +330,11 @@ static void step4(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
 }
 
 /********************************************************/
-static void step5(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
+static void step5(int *ix, int *mdist, mat_t mstar, mat_t nmstar,
 		  mat_t mprime, col_t ccol, col_t crow, int nrows, int ncols,
 		  int dmin)
 {
-	float h = 0, value;
+	int h = 0, value;
 	int row, col, found = 0;
 
 	/* find smallest uncovered element h */
@@ -378,15 +378,8 @@ static void step5(int *ix, float *mdist, mat_t mstar, mat_t nmstar,
 	      dmin);
 }
 
-void match_fingers(int ix[DIM_FINGER], float A[DIM2_FINGER], int nrow, int ncol)
+void match_fingers(int ix[DIM_FINGER], int A[DIM2_FINGER], int nrow, int ncol)
 {
-	int i;
-	float max = 1;
-	for (i = 0; i < nrow * ncol; i++)
-		if (A[i] > max)
-			max = A[i];
-	for (i = 0; i < nrow * ncol; i++)
-		A[i] /= max;
 	ixoptimal(ix, A, nrow, ncol);
 }
 

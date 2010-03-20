@@ -34,7 +34,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
 
-void match_fingers(int index[DIM_FINGER], float A[DIM2_FINGER],
+void match_fingers(int index[DIM_FINGER], int A[DIM2_FINGER],
 		   int nrow, int ncol);
 
 #endif
