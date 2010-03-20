@@ -35,8 +35,8 @@
  *
  */
 
-typedef unsigned short col_t[1];
-typedef unsigned short mat_t[DIM_FINGER];
+typedef unsigned col_t[1];
+typedef unsigned mat_t[DIM_FINGER];
 
 #define GET1(m, x) ((m[0] >> (x)) & 1U)
 #define SET1(m, x) (m[0] |= (1U << (x)))

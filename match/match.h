@@ -28,7 +28,7 @@
  * Bitmasks are used extensively.
  */
 
-#define DIM_FINGER 16
+#define DIM_FINGER 32
 #define DIM2_FINGER (DIM_FINGER * DIM_FINGER)
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
