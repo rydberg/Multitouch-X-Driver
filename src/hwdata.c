@@ -26,6 +26,14 @@ void init_hwdata(struct HWData *hw)
 	memset(hw, 0, sizeof(struct HWData));
 }
 
+static mstime_t get_mstime()
+{
+	static const mstime_t ms = 1000;
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	return now.tv_usec / ms + now.tv_sec * ms;
+}
+
 static void set_value(struct HWData *hw, int code, int value)
 {
 	if (hw->nread < DIM_FINGER) {
@@ -50,6 +58,7 @@ static void accept_packet(struct HWData *hw)
 {
 	hw->nread = 0;
 	hw->mread[hw->nread] = 0;
+	hw->evtime = get_mstime();
 }
 
 int read_hwdata(struct HWData *hw, const struct input_event* ev)

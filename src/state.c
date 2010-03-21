@@ -105,6 +105,7 @@ void modify_state(struct State *s,
 
 	s->button = hw->button;
 	s->nfinger = hw->nfinger;
+	s->evtime = hw->evtime;
 
 	/* sort fingers in touching order */
 	qsort(s->finger, s->nfinger, sizeof(struct FingerState), fincmp);
@@ -141,6 +142,8 @@ void output_state(const struct State *s)
 		GETBIT(s->button, MT_BUTTON_RIGHT));
 	xf86Msg(X_INFO, "fingers: %d\n",
 		s->nfinger);
+	xf86Msg(X_INFO, "evtime: %lld\n",
+		s->evtime);
 	for (i = 0; i < s->nfinger; i++) {
 		xf86Msg(X_INFO,
 			"  %+02d %+05d:%+05d +%05d:%+05d "

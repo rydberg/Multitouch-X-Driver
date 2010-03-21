@@ -35,6 +35,7 @@ struct State {
 	struct FingerState finger[DIM_FINGER];
 	unsigned button;
 	int nfinger;
+	mstime_t evtime;
 	int lastid;
 };
 

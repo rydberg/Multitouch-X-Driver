@@ -51,6 +51,9 @@ struct FingerData {
 	int position_x, position_y;
 };
 
+/* year-proof millisecond event time */
+typedef __u64 mstime_t;
+
 /**
  * struct HWData - hardware reads
  *
@@ -67,6 +70,7 @@ struct HWData {
 	unsigned mask[DIM_FINGER], mread[DIM_FINGER];
 	unsigned button;
 	int nfinger, nread;
+	mstime_t evtime;
 };
 
 void init_hwdata(struct HWData *hw);
