@@ -48,6 +48,11 @@
 #define MT_TOOL_PEN		1
 #endif
 
+/* includes available in 2.6.33 */
+#ifndef ABS_MT_PRESSURE
+#define ABS_MT_PRESSURE		0x3a	/* Pressure on contact area */
+#endif
+
 #define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
 #define BITMASK(x) (1U << (x))

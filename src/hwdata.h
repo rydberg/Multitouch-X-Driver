@@ -37,7 +37,7 @@
 struct FingerData {
 	int touch_major, touch_minor;
 	int width_major, width_minor;
-	int orientation;
+	int orientation, pressure;
 	int position_x, position_y;
 };
 

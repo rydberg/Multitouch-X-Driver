@@ -150,13 +150,15 @@ void output_state(const struct State *s)
 		s->nfinger);
 	for (i = 0; i < s->nfinger; i++) {
 		xf86Msg(X_INFO,
-			"  %+02d %+05d:%+05d +%05d:%+05d %+06d %+05d:%+05d\n",
+			"  %+02d %+05d:%+05d +%05d:%+05d "
+			"%+06d %+06d %+05d:%+05d\n",
 			s->finger[i].id,
 			s->finger[i].hw.touch_major,
 			s->finger[i].hw.touch_minor,
 			s->finger[i].hw.width_major,
 			s->finger[i].hw.width_minor,
 			s->finger[i].hw.orientation,
+			s->finger[i].hw.pressure,
 			s->finger[i].hw.position_x,
 			s->finger[i].hw.position_y);
 	}

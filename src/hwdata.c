@@ -81,6 +81,9 @@ int read_hwdata(struct HWData *hw, const struct input_event* ev)
 		case ABS_MT_ORIENTATION:
 			hw->finger[hw->nread].orientation = ev->value;
 			break;
+		case ABS_MT_PRESSURE:
+			hw->finger[hw->nread].pressure = ev->value;
+			break;
 		case ABS_MT_POSITION_X:
 			hw->finger[hw->nread].position_x = ev->value;
 			break;
