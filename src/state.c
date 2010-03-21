@@ -36,16 +36,9 @@ static int fincmp(const void *a, const void *b)
 	return ((struct FingerState *)a)->id - ((struct FingerState *)b)->id;
 }
 
-/* seander@cs.stanford.edu */
-inline unsigned abs32(int x)
-{
-	int const m = x >> 31;
-	return (x + m) ^ m;
-}
-
 inline int abs15(int x)
 {
-	return 32767 & abs32(x);
+	return 32767 & (x < 0 ? -x : x);
 }
 
 /* abslute scale is assumed to fit in 15 bits */

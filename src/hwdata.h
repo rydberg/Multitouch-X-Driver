@@ -34,6 +34,16 @@
 #define MT_BUTTON_HWHEEL_LEFT 5
 #define MT_BUTTON_HWHEEL_RIGHT 6
 
+#define BIT_MT_TOUCH_MAJOR 0
+#define BIT_MT_TOUCH_MINOR 1
+#define BIT_MT_WIDTH_MAJOR 2
+#define BIT_MT_WIDTH_MINOR 3
+#define BIT_MT_ORIENTATION 4
+#define BIT_MT_PRESSURE 5
+#define BIT_MT_POSITION_X 6
+#define BIT_MT_POSITION_Y 7
+#define BIT_MT_CNT 8
+
 struct FingerData {
 	int touch_major, touch_minor;
 	int width_major, width_minor;
@@ -41,8 +51,20 @@ struct FingerData {
 	int position_x, position_y;
 };
 
+/**
+ * struct HWData - hardware reads
+ *
+ * @finger: finger data
+ * @mask: bits corresponding to data actually read (readonly)
+ * @mread: bits corresponding to data in progress (writeonly)
+ * @button: bitmask of buttons
+ * @nfinger: number of fingers actually read (readonly)
+ * @nread: number of fingers in progress (writeonly)
+ *
+ */
 struct HWData {
 	struct FingerData finger[DIM_FINGER];
+	unsigned mask[DIM_FINGER], mread[DIM_FINGER];
 	unsigned button;
 	int nfinger, nread;
 };

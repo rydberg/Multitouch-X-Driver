@@ -26,17 +26,42 @@ void init_hwdata(struct HWData *hw)
 	memset(hw, 0, sizeof(struct HWData));
 }
 
+static void set_value(struct HWData *hw, int code, int value)
+{
+	if (hw->nread < DIM_FINGER) {
+		(&hw->finger[hw->nread].touch_major)[code] = value;
+		SETBIT(hw->mread[hw->nread], code);
+	}
+}
+
+static void accept_finger(struct HWData *hw)
+{
+	if (hw->nread < DIM_FINGER &&
+	    GETBIT(hw->mread[hw->nread], BIT_MT_POSITION_X) &&
+	    GETBIT(hw->mread[hw->nread], BIT_MT_POSITION_Y)) {
+		hw->mask[hw->nread] = hw->mread[hw->nread];
+		hw->nfinger = ++hw->nread;
+	}
+	if (hw->nread < DIM_FINGER)
+		hw->mread[hw->nread] = 0;
+}
+
+static void accept_packet(struct HWData *hw)
+{
+	hw->nread = 0;
+	hw->mread[hw->nread] = 0;
+}
+
 int read_hwdata(struct HWData *hw, const struct input_event* ev)
 {
 	switch (ev->type) {
 	case EV_SYN:
 		switch (ev->code) {
 		case SYN_REPORT:
-			hw->nread = 0;
+			accept_packet(hw);
 			return 1;
 		case SYN_MT_REPORT:
-			hw->nread++;
-			hw->nfinger = hw->nread;
+			accept_finger(hw);
 			break;
 		}
 		break;
@@ -63,32 +88,30 @@ int read_hwdata(struct HWData *hw, const struct input_event* ev)
 		}
 		break;
 	case EV_ABS:
-		if (hw->nread == DIM_FINGER)
-			break;
 		switch (ev->code) {
 		case ABS_MT_TOUCH_MAJOR:
-			hw->finger[hw->nread].touch_major = ev->value;
+			set_value(hw, BIT_MT_TOUCH_MAJOR, ev->value);
 			break;
 		case ABS_MT_TOUCH_MINOR:
-			hw->finger[hw->nread].touch_minor = ev->value;
+			set_value(hw, BIT_MT_TOUCH_MINOR, ev->value);
 			break;
 		case ABS_MT_WIDTH_MAJOR:
-			hw->finger[hw->nread].width_major = ev->value;
+			set_value(hw, BIT_MT_WIDTH_MAJOR, ev->value);
 			break;
 		case ABS_MT_WIDTH_MINOR:
-			hw->finger[hw->nread].width_minor = ev->value;
+			set_value(hw, BIT_MT_WIDTH_MINOR, ev->value);
 			break;
 		case ABS_MT_ORIENTATION:
-			hw->finger[hw->nread].orientation = ev->value;
+			set_value(hw, BIT_MT_ORIENTATION, ev->value);
 			break;
 		case ABS_MT_PRESSURE:
-			hw->finger[hw->nread].pressure = ev->value;
+			set_value(hw, BIT_MT_PRESSURE, ev->value);
 			break;
 		case ABS_MT_POSITION_X:
-			hw->finger[hw->nread].position_x = ev->value;
+			set_value(hw, BIT_MT_POSITION_X, ev->value);
 			break;
 		case ABS_MT_POSITION_Y:
-			hw->finger[hw->nread].position_y = ev->value;
+			set_value(hw, BIT_MT_POSITION_Y, ev->value);
 			break;
 		}
 		break;
