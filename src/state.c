@@ -25,6 +25,7 @@
 
 const double FTW = 0.05;
 const double FTS = 0.05;
+const int XMAX = 32767;
 
 void init_state(struct State *s)
 {
@@ -38,7 +39,7 @@ static int fincmp(const void *a, const void *b)
 
 inline int abs15(int x)
 {
-	return 32767 & (x < 0 ? -x : x);
+	return x < -XMAX ? -XMAX : x > XMAX ? XMAX : x;
 }
 
 /* abslute scale is assumed to fit in 15 bits */
