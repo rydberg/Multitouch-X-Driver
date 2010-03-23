@@ -37,7 +37,7 @@ static int fincmp(const void *a, const void *b)
 	return ((struct FingerState *)a)->id - ((struct FingerState *)b)->id;
 }
 
-inline int abs15(int x)
+static inline int clamp15(int x)
 {
 	return x < -XMAX ? -XMAX : x > XMAX ? XMAX : x;
 }
@@ -45,8 +45,8 @@ inline int abs15(int x)
 /* abslute scale is assumed to fit in 15 bits */
 inline int dist2(const struct FingerData *a, const struct FingerData *b)
 {
-	int dx = abs15(a->position_x - b->position_x);
-	int dy = abs15(a->position_y - b->position_y);
+	int dx = clamp15(a->position_x - b->position_x);
+	int dy = clamp15(a->position_y - b->position_y);
 
 	return dx * dx + dy * dy;
 }
