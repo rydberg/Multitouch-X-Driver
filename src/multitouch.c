@@ -215,11 +215,11 @@ static void handle_gestures(LocalDevicePtr local,
 	if (GETBIT(gs->type, GS_HSCROLL)) {
 		hscroll += gs->dx;
 		while (hscroll > hstep) {
-			tickle_button(local, 6);
+			tickle_button(local, 7);
 			hscroll -= hstep;
 		}
 		while (hscroll < -hstep) {
-			tickle_button(local, 7);
+			tickle_button(local, 6);
 			hscroll += hstep;
 		}
 		TRACE1("hscroll: %d\n", gs->dx);
