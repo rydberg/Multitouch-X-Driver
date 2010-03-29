@@ -25,16 +25,16 @@
 
 void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 {
-	const struct FingerState *b = mt->ns.finger;
-	const struct FingerState *e = b + mt->ns.nfinger;
+	const struct FingerState *b = mt->nhs.finger;
+	const struct FingerState *e = b + mt->nhs.nfinger;
 	const struct FingerState *p, *fs;
-	int nof = count_fingers(&mt->os);
-	int nsf = count_fingers(&mt->ns);
+	int nof = count_fingers(&mt->ohs);
+	int nsf = count_fingers(&mt->nhs);
 	int dn = 0, i;
 	memset(gs, 0, sizeof(struct Gestures));
 	if (nof == nsf) {
 		for (p = b; p != e; p++) {
-			fs = find_finger(&mt->os, p->id);
+			fs = find_finger(&mt->ohs, p->id);
 			if (fs) {
 				gs->dx += p->hw.position_x - fs->hw.position_x;
 				gs->dy += p->hw.position_y - fs->hw.position_y;
@@ -52,14 +52,14 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 		if (nsf == 3)
 			SETBIT(gs->type, GS_HSCROLL);
 	}
-	if (mt->ns.button == BITMASK(MT_BUTTON_LEFT)) {
+	if (mt->nhs.button == BITMASK(MT_BUTTON_LEFT)) {
 		if (nsf == 2)
-			mt->ns.button = BITMASK(MT_BUTTON_RIGHT);
+			mt->nhs.button = BITMASK(MT_BUTTON_RIGHT);
 		if (nsf == 3)
-			mt->ns.button = BITMASK(MT_BUTTON_MIDDLE);
+			mt->nhs.button = BITMASK(MT_BUTTON_MIDDLE);
 	}
-	gs->btmask = (mt->ns.button ^ mt->os.button) & BITONES(DIM_BUTTON);
-	gs->btdata = mt->ns.button & BITONES(DIM_BUTTON);
-	mt->os = mt->ns;
+	gs->btmask = (mt->nhs.button ^ mt->ohs.button) & BITONES(DIM_BUTTON);
+	gs->btdata = mt->nhs.button & BITONES(DIM_BUTTON);
+	mt->ohs = mt->nhs;
 }
 

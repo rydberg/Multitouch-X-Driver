@@ -19,7 +19,7 @@
  *
  **************************************************************************/
 
-#include "state.h"
+#include "hwstate.h"
 #include <stdlib.h>
 #include <limits.h>
 
@@ -27,9 +27,9 @@ const double FTW = 0.05;
 const double FTS = 0.05;
 const int XMAX = 32767;
 
-void init_state(struct State *s)
+void init_hwstate(struct HWState *s)
 {
-	memset(s, 0, sizeof(struct State));
+	memset(s, 0, sizeof(struct HWState));
 }
 
 static int fincmp(const void *a, const void *b)
@@ -74,9 +74,9 @@ static int touching_finger(const struct FingerData *hw,
 	return 1;
 }
 
-void modify_state(struct State *s,
-		  const struct HWData *hw,
-		  const struct Capabilities *caps)
+void modify_hwstate(struct HWState *s,
+		    const struct HWData *hw,
+		    const struct Capabilities *caps)
 {
 	int A[DIM2_FINGER], *row;
 	int sid[DIM_FINGER], hw2s[DIM_FINGER];
@@ -112,7 +112,7 @@ void modify_state(struct State *s,
 	qsort(s->finger, s->nfinger, sizeof(struct FingerState), fincmp);
 }
 
-const struct FingerState *find_finger(const struct State *s, int id)
+const struct FingerState *find_finger(const struct HWState *s, int id)
 {
 	int i;
 
@@ -125,7 +125,7 @@ const struct FingerState *find_finger(const struct State *s, int id)
 	return NULL;
 }
 
-int count_fingers(const struct State *s)
+int count_fingers(const struct HWState *s)
 {
 	int i, n = 0;
 	for (i = 0; i < s->nfinger; i++)
@@ -134,7 +134,7 @@ int count_fingers(const struct State *s)
 	return n;
 }
 
-void output_state(const struct State *s)
+void output_hwstate(const struct HWState *s)
 {
 	int i;
 	xf86Msg(X_INFO, "buttons: %d%d%d\n",

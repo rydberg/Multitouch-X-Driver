@@ -11,7 +11,7 @@ o_match	= match
 o_src	= capabilities \
 	iobuffer \
 	hwdata \
-	state \
+	hwstate \
 	mtouch \
 	gestures \
 	multitouch

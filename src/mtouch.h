@@ -25,13 +25,13 @@
 #include "capabilities.h"
 #include "iobuffer.h"
 #include "hwdata.h"
-#include "state.h"
+#include "hwstate.h"
 
 struct MTouch {
 	struct Capabilities caps;
 	struct IOBuffer buf;
 	struct HWData hw;
-	struct State os, ns;
+	struct HWState ohs, nhs;
 };
 
 int configure_mtouch(struct MTouch *mt, int fd);

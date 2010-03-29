@@ -31,7 +31,7 @@ struct FingerState {
 	int id;
 };
 
-struct State {
+struct HWState {
 	struct FingerState finger[DIM_FINGER];
 	unsigned button;
 	int nfinger;
@@ -39,13 +39,13 @@ struct State {
 	int lastid;
 };
 
-void init_state(struct State *s);
-void modify_state(struct State *s,
-		  const struct HWData *hw,
-		  const struct Capabilities *caps);
-void output_state(const struct State *s);
+void init_hwstate(struct HWState *s);
+void modify_hwstate(struct HWState *s,
+		    const struct HWData *hw,
+		    const struct Capabilities *caps);
+void output_hwstate(const struct HWState *s);
 
-const struct FingerState *find_finger(const struct State *s, int id);
-int count_fingers(const struct State *s);
+const struct FingerState *find_finger(const struct HWState *s, int id);
+int count_fingers(const struct HWState *s);
 
 #endif
