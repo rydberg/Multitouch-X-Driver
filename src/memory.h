@@ -25,6 +25,7 @@
 #include "mtstate.h"
 
 struct Memory {
+	unsigned btdata;
 };
 
 void init_memory(struct Memory *mem);

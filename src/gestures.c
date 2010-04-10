@@ -50,15 +50,19 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 
 static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 {
+	unsigned btdata = mt->state.button & BITONES(DIM_BUTTON);
 	if (mt->state.button == BITMASK(MT_BUTTON_LEFT)) {
 		if (mt->state.nfinger == 2)
-			mt->state.button = BITMASK(MT_BUTTON_RIGHT);
+			btdata = BITMASK(MT_BUTTON_RIGHT);
 		if (mt->state.nfinger == 3)
-			mt->state.button = BITMASK(MT_BUTTON_MIDDLE);
+			btdata = BITMASK(MT_BUTTON_MIDDLE);
 	}
-	gs->btmask = (mt->state.button ^ mt->prev_state.button) & BITONES(DIM_BUTTON);
-	gs->btdata = mt->state.button & BITONES(DIM_BUTTON);
+	gs->btmask = (btdata ^ mt->mem.btdata) & BITONES(DIM_BUTTON);
+	gs->btdata = btdata;
+	mt->mem.btdata = btdata;
 }
+
+/******************************************************/
 
 static void extract_type(struct Gestures *gs, struct MTouch* mt)
 {

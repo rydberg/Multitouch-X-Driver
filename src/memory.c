@@ -23,4 +23,5 @@
 
 void init_memory(struct Memory *mem)
 {
+	memset(mem, 0, sizeof(struct Memory));
 }
