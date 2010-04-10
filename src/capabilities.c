@@ -26,6 +26,8 @@
 
 #define ADDCAP(s, c, x) strcat(s, c->has_##x ? " " #x : "")
 
+static const int SN_COORD = 250;	/* coordinate signal-to-noise ratio */
+
 static const int bits_per_long = 8 * sizeof(long);
 
 static inline int nlongs(int nbit)
@@ -77,6 +79,13 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	SETABS(cap, position_y, absbits, ABS_MT_POSITION_Y, fd);
 
 	cap->has_mtdata = cap->has_position_x && cap->has_position_y;
+
+	cap->xfuzz = cap->abs_position_x.fuzz;
+	cap->yfuzz = cap->abs_position_y.fuzz;
+	if (cap->xfuzz <= 0 || cap->yfuzz <= 0) {
+		cap->xfuzz = get_cap_xsize(cap) / SN_COORD;
+		cap->yfuzz = get_cap_ysize(cap) / SN_COORD;
+	}
 
 	return 0;
 }

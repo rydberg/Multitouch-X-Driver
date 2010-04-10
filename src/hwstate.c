@@ -44,16 +44,37 @@ inline int dist2(const struct FingerData *a, const struct FingerData *b)
 	return dx * dx + dy * dy;
 }
 
+/* Dmitry Torokhov's code from kernel/driver/input/input.c */
+static int defuzz(int value, int old_val, int fuzz)
+{
+	if (fuzz) {
+		if (value > old_val - fuzz / 2 && value < old_val + fuzz / 2)
+			return old_val;
+
+		if (value > old_val - fuzz && value < old_val + fuzz)
+			return (old_val * 3 + value) / 4;
+
+		if (value > old_val - fuzz * 2 && value < old_val + fuzz * 2)
+			return (old_val + value) / 2;
+	}
+
+	return value;
+}
+
 static void set_finger(struct FingerState *fs,
 		       const struct FingerData *hw, int id,
 		       const struct Capabilities *caps)
 {
+	int x = defuzz(hw->position_x, fs->hw.position_x, caps->xfuzz);
+	int y = defuzz(hw->position_y, fs->hw.position_y, caps->yfuzz);
 	fs->hw = *hw;
 	fs->id = id;
 	if (!caps->has_touch_minor)
 		fs->hw.touch_minor = hw->touch_major;
 	if (!caps->has_width_minor)
 		fs->hw.width_minor = hw->width_major;
+	fs->hw.position_x = x;
+	fs->hw.position_y = y;
 }
 
 void modify_hwstate(struct HWState *s,
