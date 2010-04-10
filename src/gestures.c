@@ -21,11 +21,14 @@
 
 #include "gestures.h"
 
+/* timer for cursor stability on finger touch/release */
+static const int AFTER_FINGER_CHANGE_MS = 70;
+
 static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 {
 	const struct FingerState *prev[DIM_FINGER];
 	const struct FingerState *f = mt->state.finger;
-	int same_fingers, i;
+	int same_fingers, i, x = 0, y = 0;
 
 	if (mt->state.nfinger == 0)
 		return;
@@ -36,16 +39,25 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 		same_fingers = same_fingers && prev[i];
 	}
 
-	if (!same_fingers)
-		return;
-
 	for (i = 0; i < mt->state.nfinger; i++) {
-		gs->dx += f[i].hw.position_x - prev[i]->hw.position_x;
-		gs->dy += f[i].hw.position_y - prev[i]->hw.position_y;
+		x += f[i].hw.position_x;
+		y += f[i].hw.position_y;
+	}
+	x /= mt->state.nfinger;
+	y /= mt->state.nfinger;
+
+	if (!same_fingers) {
+		mt->mem.move_time = mt->state.evtime + AFTER_FINGER_CHANGE_MS;
+	} else if (mt->state.evtime >= mt->mem.move_time) {
+		gs->dx = x - mt->mem.move_x;
+		gs->dy = y - mt->mem.move_y;
+	} else {
+		/* accumulate all movement during delay */
+		return;
 	}
 
-	gs->dx /= mt->state.nfinger;
-	gs->dy /= mt->state.nfinger;
+	mt->mem.move_x = x;
+	mt->mem.move_y = y;
 }
 
 static void extract_buttons(struct Gestures *gs, struct MTouch* mt)

@@ -26,6 +26,8 @@
 
 struct Memory {
 	unsigned btdata;
+	mstime_t move_time;
+	int move_x, move_y;
 };
 
 void init_memory(struct Memory *mem);
