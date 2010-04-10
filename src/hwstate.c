@@ -30,11 +30,6 @@ void init_hwstate(struct HWState *s)
 	memset(s, 0, sizeof(struct HWState));
 }
 
-static int fincmp(const void *a, const void *b)
-{
-	return ((struct FingerState *)a)->id - ((struct FingerState *)b)->id;
-}
-
 static inline int clamp15(int x)
 {
 	return x < -XMAX ? -XMAX : x > XMAX ? XMAX : x;
@@ -91,7 +86,4 @@ void modify_hwstate(struct HWState *s,
 	s->button = hw->button;
 	s->nfinger = hw->nfinger;
 	s->evtime = hw->evtime;
-
-	/* sort fingers in touching order */
-	qsort(s->finger, s->nfinger, sizeof(struct FingerState), fincmp);
 }
