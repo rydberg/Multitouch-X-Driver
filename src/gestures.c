@@ -21,18 +21,13 @@
 
 #include "gestures.h"
 
-/******************************************************/
-
-void extract_gestures(struct Gestures *gs, struct MTouch* mt)
+static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 {
 	const struct FingerState *b = mt->state.finger;
 	const struct FingerState *e = b + mt->state.nfinger;
 	const struct FingerState *p, *fs;
-	int nof = mt->prev_state.nfinger;
-	int nsf = mt->state.nfinger;
 	int dn = 0, i;
-	memset(gs, 0, sizeof(struct Gestures));
-	if (nof == nsf) {
+	if (mt->state.nfinger == mt->prev_state.nfinger) {
 		for (p = b; p != e; p++) {
 			fs = find_finger(&mt->prev_state, p->id);
 			if (fs) {
@@ -42,25 +37,44 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 			}
 		}
 	}
-	if (gs->dx || gs->dy) {
+	if (dn) {
 		gs->dx /= dn;
 		gs->dy /= dn;
-		if (nsf == 1)
-			SETBIT(gs->type, GS_MOVE);
-		if (nsf == 2)
-			SETBIT(gs->type, GS_VSCROLL);
-		if (nsf == 3)
-			SETBIT(gs->type, GS_HSCROLL);
 	}
+}
+
+static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
+{
 	if (mt->state.button == BITMASK(MT_BUTTON_LEFT)) {
-		if (nsf == 2)
+		if (mt->state.nfinger == 2)
 			mt->state.button = BITMASK(MT_BUTTON_RIGHT);
-		if (nsf == 3)
+		if (mt->state.nfinger == 3)
 			mt->state.button = BITMASK(MT_BUTTON_MIDDLE);
 	}
-	gs->btmask = (mt->state.button ^ mt->prev_state.button) &
-		BITONES(DIM_BUTTON);
+	gs->btmask = (mt->state.button ^ mt->prev_state.button) & BITONES(DIM_BUTTON);
 	gs->btdata = mt->state.button & BITONES(DIM_BUTTON);
+}
+
+static void extract_type(struct Gestures *gs, struct MTouch* mt)
+{
+	if (gs->dx || gs->dy) {
+		if (mt->state.nfinger == 1)
+			SETBIT(gs->type, GS_MOVE);
+		if (mt->state.nfinger == 2)
+			SETBIT(gs->type, GS_VSCROLL);
+		if (mt->state.nfinger == 3)
+			SETBIT(gs->type, GS_HSCROLL);
+	}
+}
+
+/******************************************************/
+
+void extract_gestures(struct Gestures *gs, struct MTouch* mt)
+{
+	memset(gs, 0, sizeof(struct Gestures));
+	extract_movement(gs, mt);
+	extract_buttons(gs, mt);
+	extract_type(gs, mt);
 	mt->prev_state = mt->state;
 }
 
