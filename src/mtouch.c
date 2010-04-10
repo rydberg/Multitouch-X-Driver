@@ -62,4 +62,7 @@ void parse_event(struct MTouch *mt)
 {
 	modify_hwstate(&mt->hs, &mt->hw, &mt->caps);
 	extract_mtstate(&mt->state, &mt->hs, &mt->caps);
+#if 0
+	output_mtstate(&mt->state);
+#endif
 }
