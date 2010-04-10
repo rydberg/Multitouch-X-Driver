@@ -23,8 +23,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-const double FTW = 0.05;
-const double FTS = 0.05;
 const int XMAX = 32767;
 
 void init_hwstate(struct HWState *s)
@@ -63,17 +61,6 @@ static void set_finger(struct FingerState *fs,
 		fs->hw.width_minor = hw->width_major;
 }
 
-static int touching_finger(const struct FingerData *hw,
-			   const struct Capabilities *caps)
-{
-	if (caps->has_touch_major && caps->has_width_major)
-		return hw->width_major > 0 &&
-			hw->touch_major > FTW * hw->width_major;
-	if (caps->has_touch_major)
-		return hw->touch_major > FTS * caps->abs_touch_major.maximum;
-	return 1;
-}
-
 void modify_hwstate(struct HWState *s,
 		    const struct HWData *hw,
 		    const struct Capabilities *caps)
@@ -96,11 +83,8 @@ void modify_hwstate(struct HWState *s,
 	for (hwk = 0; hwk < hw->nfinger; hwk++) {
 		sk = hw2s[hwk];
 		id = sk >= 0 ? sid[sk] : 0;
-		if (!touching_finger(&hw->finger[hwk], caps))
-			id = 0;
-		else
-			while (!id)
-				id = ++s->lastid;
+		while (!id)
+			id = ++s->lastid;
 		set_finger(&s->finger[hwk], &hw->finger[hwk], id, caps);
 	}
 
@@ -110,53 +94,4 @@ void modify_hwstate(struct HWState *s,
 
 	/* sort fingers in touching order */
 	qsort(s->finger, s->nfinger, sizeof(struct FingerState), fincmp);
-}
-
-const struct FingerState *find_finger(const struct HWState *s, int id)
-{
-	int i;
-
-	if (!id)
-		return NULL;
-	for (i = 0; i < s->nfinger; i++)
-		if (s->finger[i].id == id)
-			return s->finger + i;
-
-	return NULL;
-}
-
-int count_fingers(const struct HWState *s)
-{
-	int i, n = 0;
-	for (i = 0; i < s->nfinger; i++)
-		if (s->finger[i].id)
-			n++;
-	return n;
-}
-
-void output_hwstate(const struct HWState *s)
-{
-	int i;
-	xf86Msg(X_INFO, "buttons: %d%d%d\n",
-		GETBIT(s->button, MT_BUTTON_LEFT),
-		GETBIT(s->button, MT_BUTTON_MIDDLE),
-		GETBIT(s->button, MT_BUTTON_RIGHT));
-	xf86Msg(X_INFO, "fingers: %d\n",
-		s->nfinger);
-	xf86Msg(X_INFO, "evtime: %lld\n",
-		s->evtime);
-	for (i = 0; i < s->nfinger; i++) {
-		xf86Msg(X_INFO,
-			"  %+02d %+05d:%+05d +%05d:%+05d "
-			"%+06d %+06d %+05d:%+05d\n",
-			s->finger[i].id,
-			s->finger[i].hw.touch_major,
-			s->finger[i].hw.touch_minor,
-			s->finger[i].hw.width_major,
-			s->finger[i].hw.width_minor,
-			s->finger[i].hw.orientation,
-			s->finger[i].hw.pressure,
-			s->finger[i].hw.position_x,
-			s->finger[i].hw.position_y);
-	}
 }

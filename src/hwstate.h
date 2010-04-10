@@ -43,9 +43,5 @@ void init_hwstate(struct HWState *s);
 void modify_hwstate(struct HWState *s,
 		    const struct HWData *hw,
 		    const struct Capabilities *caps);
-void output_hwstate(const struct HWState *s);
-
-const struct FingerState *find_finger(const struct HWState *s, int id);
-int count_fingers(const struct HWState *s);
 
 #endif

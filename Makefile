@@ -12,6 +12,7 @@ o_src	= capabilities \
 	iobuffer \
 	hwdata \
 	hwstate \
+	mtstate \
 	mtouch \
 	gestures \
 	multitouch

@@ -19,28 +19,25 @@
  *
  **************************************************************************/
 
-#ifndef MTOUCH_H
-#define MTOUCH_H
+#ifndef MTSTATE_H
+#define MTSTATE_H
 
-#include "capabilities.h"
-#include "iobuffer.h"
-#include "hwdata.h"
 #include "hwstate.h"
-#include "mtstate.h"
 
-struct MTouch {
-	struct Capabilities caps;
-	struct IOBuffer buf;
-	struct HWData hw;
-	struct HWState hs;
-	struct MTState prev_state, state;
+struct MTState {
+	struct FingerState finger[DIM_FINGER];
+	int nfinger;
+	unsigned button;
+	mstime_t evtime;
 };
 
-int configure_mtouch(struct MTouch *mt, int fd);
-int open_mtouch(struct MTouch *mt, int fd);
-int close_mtouch(struct MTouch *mt, int fd);
+void init_mtstate(struct MTState *s);
+void extract_mtstate(struct MTState *s,
+		     const struct HWState *hs,
+		     const struct Capabilities *caps);
+void output_mtstate(const struct MTState *s);
 
-int read_synchronized_event(struct MTouch *mt, int fd);
-void parse_event(struct MTouch *mt);
+const struct FingerState *find_finger(const struct MTState *s, int id);
 
 #endif
+

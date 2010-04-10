@@ -35,8 +35,9 @@ int open_mtouch(struct MTouch *mt, int fd)
 	int rc;
 	init_iobuf(&mt->buf);
 	init_hwdata(&mt->hw);
-	init_hwstate(&mt->ohs);
-	init_hwstate(&mt->nhs);
+	init_hwstate(&mt->hs);
+	init_mtstate(&mt->prev_state);
+	init_mtstate(&mt->state);
 	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
 	return rc;
 }
@@ -59,5 +60,6 @@ int read_synchronized_event(struct MTouch *mt, int fd)
 
 void parse_event(struct MTouch *mt)
 {
-	modify_hwstate(&mt->nhs, &mt->hw, &mt->caps);
+	modify_hwstate(&mt->hs, &mt->hw, &mt->caps);
+	extract_mtstate(&mt->state, &mt->hs, &mt->caps);
 }
