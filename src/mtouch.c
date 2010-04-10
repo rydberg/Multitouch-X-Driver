@@ -38,6 +38,7 @@ int open_mtouch(struct MTouch *mt, int fd)
 	init_hwstate(&mt->hs);
 	init_mtstate(&mt->prev_state);
 	init_mtstate(&mt->state);
+	init_memory(&mt->mem);
 	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
 	return rc;
 }

@@ -19,30 +19,14 @@
  *
  **************************************************************************/
 
-#ifndef MTOUCH_H
-#define MTOUCH_H
+#ifndef MEMORY_H
+#define MEMORY_H
 
-#include "capabilities.h"
-#include "iobuffer.h"
-#include "hwdata.h"
-#include "hwstate.h"
 #include "mtstate.h"
-#include "memory.h"
 
-struct MTouch {
-	struct Capabilities caps;
-	struct IOBuffer buf;
-	struct HWData hw;
-	struct HWState hs;
-	struct MTState prev_state, state;
-	struct Memory mem;
+struct Memory {
 };
 
-int configure_mtouch(struct MTouch *mt, int fd);
-int open_mtouch(struct MTouch *mt, int fd);
-int close_mtouch(struct MTouch *mt, int fd);
-
-int read_synchronized_event(struct MTouch *mt, int fd);
-void parse_event(struct MTouch *mt);
+void init_memory(struct Memory *mem);
 
 #endif

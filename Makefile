@@ -13,6 +13,7 @@ o_src	= capabilities \
 	hwdata \
 	hwstate \
 	mtstate \
+	memory \
 	mtouch \
 	gestures \
 	multitouch
