@@ -23,24 +23,29 @@
 
 static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 {
-	const struct FingerState *b = mt->state.finger;
-	const struct FingerState *e = b + mt->state.nfinger;
-	const struct FingerState *p, *fs;
-	int dn = 0, i;
-	if (mt->state.nfinger == mt->prev_state.nfinger) {
-		for (p = b; p != e; p++) {
-			fs = find_finger(&mt->prev_state, p->id);
-			if (fs) {
-				gs->dx += p->hw.position_x - fs->hw.position_x;
-				gs->dy += p->hw.position_y - fs->hw.position_y;
-				dn++;
-			}
-		}
+	const struct FingerState *prev[DIM_FINGER];
+	const struct FingerState *f = mt->state.finger;
+	int same_fingers, i;
+
+	if (mt->state.nfinger == 0)
+		return;
+
+	same_fingers = mt->state.nfinger == mt->prev_state.nfinger;
+	for (i = 0; i < mt->state.nfinger; i++) {
+		prev[i] = find_finger(&mt->prev_state, mt->state.finger[i].id);
+		same_fingers = same_fingers && prev[i];
 	}
-	if (dn) {
-		gs->dx /= dn;
-		gs->dy /= dn;
+
+	if (!same_fingers)
+		return;
+
+	for (i = 0; i < mt->state.nfinger; i++) {
+		gs->dx += f[i].hw.position_x - prev[i]->hw.position_x;
+		gs->dy += f[i].hw.position_y - prev[i]->hw.position_y;
 	}
+
+	gs->dx /= mt->state.nfinger;
+	gs->dy /= mt->state.nfinger;
 }
 
 static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
