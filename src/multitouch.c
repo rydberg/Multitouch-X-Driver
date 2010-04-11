@@ -180,6 +180,22 @@ static void tickle_button(LocalDevicePtr local, int id)
 	xf86PostButtonEvent(local->dev, FALSE, id, 0, 0, 0);
 }
 
+static void button_scroll(LocalDevicePtr local,
+			  int btdec, int btinc,
+			  int *scroll, int step,
+			  int delta)
+{
+	*scroll += delta;
+	while (*scroll > step) {
+		tickle_button(local, btinc);
+		*scroll -= step;
+	}
+	while (*scroll < -step) {
+		tickle_button(local, btdec);
+		*scroll += step;
+	}
+}
+
 static void handle_gestures(LocalDevicePtr local,
 			    const struct Gestures *gs,
 			    const struct Capabilities *caps)
@@ -201,27 +217,11 @@ static void handle_gestures(LocalDevicePtr local,
 		TRACE2("motion: %d %d\n", gs->dx, gs->dy);
 	}
 	if (GETBIT(gs->type, GS_VSCROLL)) {
-		vscroll += gs->dy;
-		while (vscroll > vstep) {
-			tickle_button(local, 5);
-			vscroll -= vstep;
-		}
-		while (vscroll < -vstep) {
-			tickle_button(local, 4);
-			vscroll += vstep;
-		}
+		button_scroll(local, 4, 5, &vscroll, vstep, gs->dy);
 		TRACE1("vscroll: %d\n", gs->dy);
 	}
 	if (GETBIT(gs->type, GS_HSCROLL)) {
-		hscroll += gs->dx;
-		while (hscroll > hstep) {
-			tickle_button(local, 7);
-			hscroll -= hstep;
-		}
-		while (hscroll < -hstep) {
-			tickle_button(local, 6);
-			hscroll += hstep;
-		}
+		button_scroll(local, 6, 7, &hscroll, hstep, gs->dx);
 		TRACE1("hscroll: %d\n", gs->dx);
 	}
 }
