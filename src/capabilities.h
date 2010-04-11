@@ -28,7 +28,7 @@ struct Capabilities {
 	struct input_id devid;
 	char devname[32];
 	int has_left, has_middle;
-	int has_right, has_mtdata;
+	int has_right, has_mtdata, has_ibt;
 	int has_touch_major, has_touch_minor;
 	int has_width_major, has_width_minor;
 	int has_orientation, has_dummy;

@@ -47,6 +47,14 @@ static int getabs(struct input_absinfo *abs, int key, int fd)
 	return rc >= 0;
 }
 
+static int has_integrated_button(const struct Capabilities *cap)
+{
+	static const int bcm5974_vmask_ibt = 1;
+	if (strcmp(cap->devname, "bcm5974"))
+		return 0;
+	return cap->devid.version & bcm5974_vmask_ibt;
+}
+
 int read_capabilities(struct Capabilities *cap, int fd)
 {
 	unsigned long evbits[nlongs(EV_MAX)];
@@ -85,6 +93,7 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	SETABS(cap, position_y, absbits, ABS_MT_POSITION_Y, fd);
 
 	cap->has_mtdata = cap->has_position_x && cap->has_position_y;
+	cap->has_ibt = has_integrated_button(cap);
 
 	cap->xfuzz = cap->abs_position_x.fuzz;
 	cap->yfuzz = cap->abs_position_y.fuzz;
@@ -114,6 +123,7 @@ void output_capabilities(const struct Capabilities *cap)
 	ADDCAP(line, cap, middle);
 	ADDCAP(line, cap, right);
 	ADDCAP(line, cap, mtdata);
+	ADDCAP(line, cap, ibt);
 	ADDCAP(line, cap, touch_major);
 	ADDCAP(line, cap, touch_minor);
 	ADDCAP(line, cap, width_major);
