@@ -26,7 +26,8 @@
 #include "gestures.h"
 
 /* timer for cursor stability on finger touch/release */
-static const int AFTER_FINGER_CHANGE_MS = 70;
+static const int FINGER_ATTACK_MS = 70;
+static const int FINGER_DECAY_MS = 120;
 
 static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 {
@@ -51,7 +52,11 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 	y /= mt->state.nfinger;
 
 	if (!same_fingers) {
-		mt->mem.move_time = mt->state.evtime + AFTER_FINGER_CHANGE_MS;
+		mt->mem.move_time = mt->state.evtime;
+		if (mt->state.nfinger > mt->prev_state.nfinger)
+			mt->mem.move_time += FINGER_ATTACK_MS;
+		else
+			mt->mem.move_time += FINGER_DECAY_MS;
 	} else if (mt->state.evtime >= mt->mem.move_time) {
 		gs->dx = x - mt->mem.move_x;
 		gs->dy = y - mt->mem.move_y;
