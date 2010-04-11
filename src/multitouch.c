@@ -74,13 +74,20 @@ static void initButtonLabels(Atom map[DIM_BUTTON])
 	PROPMAP(map, MT_BUTTON_WHEEL_DOWN, BTN_LABEL_PROP_BTN_WHEEL_DOWN);
 	PROPMAP(map, MT_BUTTON_HWHEEL_LEFT, BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
 	PROPMAP(map, MT_BUTTON_HWHEEL_RIGHT, BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+	/* how to map swipe buttons? */
+	PROPMAP(map, MT_BUTTON_SWIPE_UP, BTN_LABEL_PROP_BTN_0);
+	PROPMAP(map, MT_BUTTON_SWIPE_DOWN, BTN_LABEL_PROP_BTN_1);
+	PROPMAP(map, MT_BUTTON_SWIPE_LEFT, BTN_LABEL_PROP_BTN_2);
+	PROPMAP(map, MT_BUTTON_SWIPE_RIGHT, BTN_LABEL_PROP_BTN_3);
 }
 #endif
 
 static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
-	unsigned char btmap[DIM_BUTTON + 1] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	unsigned char btmap[DIM_BUTTON + 1] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+	};
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 	Atom axes_labels[2], btn_labels[DIM_BUTTON];
 	initAxesLabels(axes_labels);
