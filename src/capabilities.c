@@ -56,6 +56,12 @@ int read_capabilities(struct Capabilities *cap, int fd)
 
 	memset(cap, 0, sizeof(struct Capabilities));
 
+	SYSCALL(rc = ioctl(fd, EVIOCGID, &cap->devid));
+	if (rc < 0)
+		return rc;
+	SYSCALL(rc = ioctl(fd, EVIOCGNAME(sizeof(cap->devname)), cap->devname));
+	if (rc < 0)
+		return rc;
 	SYSCALL(rc = ioctl(fd, EVIOCGBIT(EV_SYN, sizeof(evbits)), evbits));
 	if (rc < 0)
 		return rc;
@@ -115,6 +121,9 @@ void output_capabilities(const struct Capabilities *cap)
 	ADDCAP(line, cap, orientation);
 	ADDCAP(line, cap, position_x);
 	ADDCAP(line, cap, position_y);
+	xf86Msg(X_INFO, "multitouch: devname: %s\n", cap->devname);
+	xf86Msg(X_INFO, "multitouch: devid: %x %x %x\n",
+		cap->devid.vendor, cap->devid.product, cap->devid.version);
 	xf86Msg(X_INFO, "multitouch: caps:%s\n", line);
 	if (cap->has_touch_major)
 		xf86Msg(X_INFO, "multitouch: touch: %d %d\n",

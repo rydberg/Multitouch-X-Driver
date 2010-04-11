@@ -25,6 +25,8 @@
 #include "common.h"
 
 struct Capabilities {
+	struct input_id devid;
+	char devname[32];
 	int has_left, has_middle;
 	int has_right, has_mtdata;
 	int has_touch_major, has_touch_minor;
