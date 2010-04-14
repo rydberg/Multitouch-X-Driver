@@ -29,6 +29,45 @@
 static const int FINGER_ATTACK_MS = 70;
 static const int FINGER_DECAY_MS = 120;
 
+static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
+{
+	const struct FingerState *f = mt->state.finger;
+	int i;
+
+	if (mt->state.nfinger < 2) {
+		mt->mem.pointing = mt->state.nfinger;
+		mt->mem.npoint = mt->state.nfinger;
+		mt->mem.ybar = mt->caps.abs_position_y.maximum;
+		return;
+	}
+
+	if (mt->state.nfinger == mt->prev_state.nfinger) {
+		for (i = 0; i < mt->state.nfinger; i++) {
+			if (GETBIT(mt->mem.pointing, i))
+				continue;
+			if (f[i].hw.position_y <= mt->mem.ybar) {
+				mt->mem.pointing = BITONES(mt->state.nfinger);
+				mt->mem.npoint = mt->state.nfinger;
+				return;
+			}
+		}
+		return;
+	}
+
+	mt->mem.pointing = 0;
+	mt->mem.npoint = 0;
+	mt->mem.ybar = mt->caps.yclick;
+	for (i = 0; i < mt->state.nfinger; i++) {
+		if (f[i].hw.position_y > mt->caps.yclick)
+			continue;
+		if (!mt->mem.npoint || f[i].hw.position_y > mt->mem.ybar)
+			mt->mem.ybar = f[i].hw.position_y;
+		SETBIT(mt->mem.pointing, i);
+		mt->mem.npoint++;
+	}
+
+}
+
 static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 {
 	const struct FingerState *prev[DIM_FINGER];
@@ -73,9 +112,9 @@ static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 {
 	unsigned btdata = mt->state.button & BITONES(DIM_BUTTON);
 	if (mt->state.button == BITMASK(MT_BUTTON_LEFT)) {
-		if (mt->state.nfinger == 2)
+		if (mt->mem.npoint == 2)
 			btdata = BITMASK(MT_BUTTON_RIGHT);
-		if (mt->state.nfinger == 3)
+		if (mt->mem.npoint == 3)
 			btdata = BITMASK(MT_BUTTON_MIDDLE);
 	}
 	gs->btmask = (btdata ^ mt->mem.btdata) & BITONES(DIM_BUTTON);
@@ -110,6 +149,7 @@ static void extract_type(struct Gestures *gs, struct MTouch* mt)
 void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 {
 	memset(gs, 0, sizeof(struct Gestures));
+	extract_pointers(gs, mt);
 	extract_movement(gs, mt);
 	extract_buttons(gs, mt);
 	extract_type(gs, mt);

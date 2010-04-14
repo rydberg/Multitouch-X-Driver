@@ -25,7 +25,8 @@
 #include "mtstate.h"
 
 struct Memory {
-	unsigned btdata;
+	unsigned btdata, pointing;
+	int npoint, ybar;
 	mstime_t move_time;
 	int move_x, move_y;
 };
