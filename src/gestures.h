@@ -28,6 +28,8 @@
 #define GS_MOVE 1
 #define GS_VSCROLL 2
 #define GS_HSCROLL 3
+#define GS_VSWIPE 4
+#define GS_HSWIPE 5
 
 struct Gestures {
 	unsigned type, btmask, btdata;

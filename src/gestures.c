@@ -90,10 +90,18 @@ static void extract_type(struct Gestures *gs, struct MTouch* mt)
 	if (gs->dx || gs->dy) {
 		if (mt->state.nfinger == 1)
 			SETBIT(gs->type, GS_MOVE);
-		if (mt->state.nfinger == 2)
-			SETBIT(gs->type, GS_VSCROLL);
-		if (mt->state.nfinger == 3)
-			SETBIT(gs->type, GS_HSCROLL);
+		if (mt->state.nfinger == 2) {
+			if (gs->dx)
+				SETBIT(gs->type, GS_HSCROLL);
+			if (gs->dy)
+				SETBIT(gs->type, GS_VSCROLL);
+		}
+		if (mt->state.nfinger == 3) {
+			if (gs->dx)
+				SETBIT(gs->type, GS_HSWIPE);
+			if (gs->dy)
+				SETBIT(gs->type, GS_VSWIPE);
+		}
 	}
 }
 

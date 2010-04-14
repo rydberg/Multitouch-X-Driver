@@ -28,7 +28,9 @@
 
 /* these should be user-configurable at some point */
 static const float vscroll_fraction = 0.05;
-static const float hscroll_fraction = 0.2;
+static const float hscroll_fraction = 0.05;
+static const float vswipe_fraction = 0.25;
+static const float hswipe_fraction = 0.25;
 
 /* flip these to enable event debugging */
 #if 1
@@ -207,9 +209,11 @@ static void handle_gestures(LocalDevicePtr local,
 			    const struct Gestures *gs,
 			    const struct Capabilities *caps)
 {
-	static int vscroll, hscroll;
-	int vstep = 1 + vscroll_fraction * get_cap_ysize(caps);
-	int hstep = 1 + hscroll_fraction * get_cap_xsize(caps);
+	static int vscroll, hscroll, vswipe, hswipe;
+	int vscrollstep = 1 + vscroll_fraction * get_cap_ysize(caps);
+	int hscrollstep = 1 + hscroll_fraction * get_cap_xsize(caps);
+	int vswipestep = 1 + vswipe_fraction * get_cap_ysize(caps);
+	int hswipestep = 1 + hswipe_fraction * get_cap_xsize(caps);
 	int i;
 	for (i = 0; i < DIM_BUTTON; i++) {
 		if (GETBIT(gs->btmask, i)) {
@@ -224,12 +228,20 @@ static void handle_gestures(LocalDevicePtr local,
 		TRACE2("motion: %d %d\n", gs->dx, gs->dy);
 	}
 	if (GETBIT(gs->type, GS_VSCROLL)) {
-		button_scroll(local, 4, 5, &vscroll, vstep, gs->dy);
+		button_scroll(local, 4, 5, &vscroll, vscrollstep, gs->dy);
 		TRACE1("vscroll: %d\n", gs->dy);
 	}
 	if (GETBIT(gs->type, GS_HSCROLL)) {
-		button_scroll(local, 6, 7, &hscroll, hstep, gs->dx);
+		button_scroll(local, 6, 7, &hscroll, hscrollstep, gs->dx);
 		TRACE1("hscroll: %d\n", gs->dx);
+	}
+	if (GETBIT(gs->type, GS_VSWIPE)) {
+		button_scroll(local, 8, 9, &vswipe, vswipestep, gs->dy);
+		TRACE1("vswipe: %d\n", gs->dy);
+	}
+	if (GETBIT(gs->type, GS_HSWIPE)) {
+		button_scroll(local, 10, 11, &hswipe, hswipestep, gs->dx);
+		TRACE1("hswipe: %d\n", gs->dx);
 	}
 }
 
