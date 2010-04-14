@@ -25,10 +25,13 @@
 #include "mtstate.h"
 
 struct Memory {
-	unsigned btdata, pointing;
+	unsigned btdata, pointing, moving;
 	int npoint, ybar;
 	mstime_t move_time;
-	int move_x, move_y;
+	int dx[DIM_FINGER], dy[DIM_FINGER], nmove;
+
+
+
 };
 
 void init_memory(struct Memory *mem);
