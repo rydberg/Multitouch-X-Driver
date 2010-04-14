@@ -35,5 +35,6 @@ struct Memory {
 };
 
 void init_memory(struct Memory *mem);
+void output_memory(const struct Memory *m);
 
 #endif

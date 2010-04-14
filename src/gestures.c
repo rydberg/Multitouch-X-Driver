@@ -189,5 +189,8 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 	extract_buttons(gs, mt);
 	extract_type(gs, mt);
 	mt->prev_state = mt->state;
+#if 0
+	output_memory(&mt->mem);
+#endif
 }
 
