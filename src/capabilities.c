@@ -26,6 +26,8 @@
 
 #define ADDCAP(s, c, x) strcat(s, c->has_##x ? " " #x : "")
 
+#define CLICK_AREA(c) ((c->has_ibt ? 0.20 : 0.00) * get_cap_ysize(c))
+
 static const int SN_COORD = 250;	/* coordinate signal-to-noise ratio */
 
 static const int bits_per_long = 8 * sizeof(long);
@@ -101,6 +103,8 @@ int read_capabilities(struct Capabilities *cap, int fd)
 		cap->xfuzz = get_cap_xsize(cap) / SN_COORD;
 		cap->yfuzz = get_cap_ysize(cap) / SN_COORD;
 	}
+
+	cap->yclick = cap->abs_position_y.maximum - CLICK_AREA(cap);
 
 	return 0;
 }

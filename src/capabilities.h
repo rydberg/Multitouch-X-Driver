@@ -41,6 +41,7 @@ struct Capabilities {
 	struct input_absinfo abs_position_x;
 	struct input_absinfo abs_position_y;
 	int xfuzz, yfuzz;
+	int yclick;
 };
 
 int read_capabilities(struct Capabilities *cap, int fd);
