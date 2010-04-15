@@ -33,7 +33,7 @@
 
 struct Gestures {
 	unsigned type, btmask, btdata;
-	int dx, dy;
+	int same_fingers, dx, dy;
 };
 
 void extract_gestures(struct Gestures *gs, struct MTouch* mt);

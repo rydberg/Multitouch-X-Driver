@@ -42,6 +42,15 @@ inline int dyval(const struct FingerState *a, const struct FingerState *b)
 	return a->hw.position_y - b->hw.position_y;
 }
 
+static void extract_finger_configuration(struct Gestures *gs, struct MTouch* mt)
+{
+	const struct FingerState *f = mt->state.finger;
+	int i, same = mt->state.nfinger == mt->prev_state.nfinger;
+	for (i = 0; i < mt->state.nfinger; i++)
+		same = same && find_finger(&mt->prev_state, f[i].id);
+	gs->same_fingers = same;
+}
+
 static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 {
 	const struct FingerState *f = mt->state.finger;
@@ -54,7 +63,7 @@ static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 		return;
 	}
 
-	if (mt->state.nfinger == mt->prev_state.nfinger) {
+	if (gs->same_fingers) {
 		for (i = 0; i < mt->state.nfinger; i++) {
 			if (GETBIT(mt->mem.pointing, i))
 				continue;
@@ -83,9 +92,8 @@ static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 
 static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 {
-	const struct FingerState *prev[DIM_FINGER];
-	const struct FingerState *f = mt->state.finger;
-	int same_fingers, i, x = 0, y = 0;
+	const struct FingerState *prev, *f = mt->state.finger;
+	int i, x = 0, y = 0;
 	int dx, dy, xcut, ycut, xmax = 0, ymax = 0;
 
 	mt->mem.moving = 0;
@@ -94,13 +102,7 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 	if (mt->state.nfinger == 0)
 		return;
 
-	same_fingers = mt->state.nfinger == mt->prev_state.nfinger;
-	for (i = 0; i < mt->state.nfinger; i++) {
-		prev[i] = find_finger(&mt->prev_state, mt->state.finger[i].id);
-		same_fingers = same_fingers && prev[i];
-	}
-
-	if (!same_fingers) {
+	if (!gs->same_fingers) {
 		mt->mem.move_time = mt->state.evtime;
 		if (mt->state.nfinger > mt->prev_state.nfinger)
 			mt->mem.move_time += FINGER_ATTACK_MS;
@@ -112,8 +114,9 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 		for (i = 0; i < mt->state.nfinger; i++) {
 			if (!GETBIT(mt->mem.pointing, i))
 				continue;
-			dx = dxval(&f[i], prev[i]);
-			dy = dyval(&f[i], prev[i]);
+			prev = find_finger(&mt->prev_state, f[i].id);
+			dx = dxval(&f[i], prev);
+			dy = dyval(&f[i], prev);
 			mt->mem.dx[i] += dx;
 			mt->mem.dy[i] += dy;
 			xmax = maxval(xmax, abs(mt->mem.dx[i]));
@@ -186,6 +189,7 @@ static void extract_type(struct Gestures *gs, struct MTouch* mt)
 void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 {
 	memset(gs, 0, sizeof(struct Gestures));
+	extract_finger_configuration(gs, mt);
 	extract_pointers(gs, mt);
 	extract_movement(gs, mt);
 	extract_buttons(gs, mt);
