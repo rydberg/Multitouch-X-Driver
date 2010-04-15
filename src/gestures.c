@@ -106,6 +106,8 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 			mt->mem.move_time += FINGER_ATTACK_MS;
 		else
 			mt->mem.move_time += FINGER_DECAY_MS;
+		memset(mt->mem.dx, 0, sizeof(mt->mem.dx));
+		memset(mt->mem.dy, 0, sizeof(mt->mem.dy));
 	} else {
 		for (i = 0; i < mt->state.nfinger; i++) {
 			if (!GETBIT(mt->mem.pointing, i))
