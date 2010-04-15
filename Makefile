@@ -1,3 +1,7 @@
+VERSION = 1
+PATCHLEVEL = 0
+EXTRAVERSION = alpha1
+
 LIBRARY	= multitouch.so
 FDIS	= 11-multitouch.fdi
 MODULES = match src
