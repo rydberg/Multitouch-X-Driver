@@ -215,6 +215,12 @@ static void handle_gestures(LocalDevicePtr local,
 	int vswipestep = 1 + vswipe_fraction * get_cap_ysize(caps);
 	int hswipestep = 1 + hswipe_fraction * get_cap_xsize(caps);
 	int i;
+	if (!gs->same_fingers) {
+		vscroll = 0;
+		hscroll = 0;
+		vswipe = 0;
+		hswipe = 0;
+	}
 	for (i = 0; i < DIM_BUTTON; i++) {
 		if (GETBIT(gs->btmask, i)) {
 			xf86PostButtonEvent(local->dev, FALSE,
