@@ -83,25 +83,25 @@ void modify_hwstate(struct HWState *s,
 {
 	int A[DIM2_FINGER], *row;
 	int sid[DIM_FINGER], hw2s[DIM_FINGER];
-	int id, sk, hwk;
+	int id, i, j;
 
 	/* setup distance matrix for finger id matching */
-	for (sk = 0; sk < s->nfinger; sk++) {
-		sid[sk] = s->finger[sk].id;
-		row = A + hw->nfinger * sk;
-		for (hwk = 0; hwk < hw->nfinger; hwk++)
-			row[hwk] = dist2(&hw->finger[hwk], &s->finger[sk].hw);
+	for (j = 0; j < s->nfinger; j++) {
+		sid[j] = s->finger[j].id;
+		row = A + hw->nfinger * j;
+		for (i = 0; i < hw->nfinger; i++)
+			row[i] = dist2(&hw->finger[i], &s->finger[j].hw);
 	}
 
 	match_fingers(hw2s, A, hw->nfinger, s->nfinger);
 
 	/* update matched fingers and create new ones */
-	for (hwk = 0; hwk < hw->nfinger; hwk++) {
-		sk = hw2s[hwk];
-		id = sk >= 0 ? sid[sk] : 0;
+	for (i = 0; i < hw->nfinger; i++) {
+		j = hw2s[i];
+		id = j >= 0 ? sid[j] : 0;
 		while (!id)
 			id = ++s->lastid;
-		set_finger(&s->finger[hwk], &hw->finger[hwk], id, caps);
+		set_finger(&s->finger[i], &hw->finger[i], id, caps);
 	}
 
 	s->button = hw->button;
