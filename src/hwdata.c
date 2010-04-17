@@ -40,7 +40,7 @@ static void accept_finger(struct HWData *hw)
 	    GETBIT(hw->mread[hw->nread], BIT_MT_POSITION_X) &&
 	    GETBIT(hw->mread[hw->nread], BIT_MT_POSITION_Y)) {
 		hw->mask[hw->nread] = hw->mread[hw->nread];
-		hw->nfinger = ++hw->nread;
+		hw->nread++;
 	}
 	if (hw->nread < DIM_FINGER)
 		hw->mread[hw->nread] = 0;
@@ -49,6 +49,7 @@ static void accept_finger(struct HWData *hw)
 static void accept_packet(struct HWData *hw, const struct timeval* tv)
 {
 	static const mstime_t ms = 1000;
+	hw->nfinger = hw->nread;
 	hw->nread = 0;
 	hw->mread[hw->nread] = 0;
 	hw->evtime = tv->tv_usec / ms + tv->tv_sec * ms;
