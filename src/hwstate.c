@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#define NOTOUCH(hw, c) ((hw)->touch_major == 0 && (c)->has_touch_major)
+
 const int XMAX = 32767;
 
 void init_hwstate(struct HWState *s)
@@ -88,6 +90,8 @@ void modify_hwstate(struct HWState *s,
 	/* setup distance matrix for finger id matching */
 	for (j = 0; j < s->nfinger; j++) {
 		sid[j] = s->finger[j].id;
+		if (NOTOUCH(&s->finger[j].hw, caps))
+			sid[j] = 0;
 		row = A + hw->nfinger * j;
 		for (i = 0; i < hw->nfinger; i++)
 			row[i] = dist2(&hw->finger[i], &s->finger[j].hw);
@@ -99,10 +103,15 @@ void modify_hwstate(struct HWState *s,
 	for (i = 0; i < hw->nfinger; i++) {
 		j = hw2s[i];
 		id = j >= 0 ? sid[j] : 0;
-		while (!id)
-			id = ++s->lastid;
+		if (!NOTOUCH(&hw->finger[i], caps))
+			while (!id)
+				id = ++s->lastid;
 		set_finger(&s->finger[i], &hw->finger[i], id, caps);
 	}
+
+	/* clear remaining finger ids */
+	for (i = hw->nfinger; i < s->nfinger; i++)
+		s->finger[i].id = 0;
 
 	s->button = hw->button;
 	s->nfinger = hw->nfinger;
