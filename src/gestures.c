@@ -159,15 +159,19 @@ static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 		if (mt->mem.npoint == 3)
 			btdata = BITMASK(MT_BUTTON_MIDDLE);
 	}
-	gs->btmask = (btdata ^ mt->mem.btdata) & BITONES(DIM_BUTTON);
-	gs->btdata = btdata;
-	mt->mem.btdata = btdata;
+	if (mt->state.button != mt->prev_state.button) {
+		gs->btmask = (btdata ^ mt->mem.btdata) & BITONES(DIM_BUTTON);
+		gs->btdata = btdata;
+		mt->mem.btdata = btdata;
+	}
 }
 
 /******************************************************/
 
 static void extract_type(struct Gestures *gs, struct MTouch* mt)
 {
+	if (gs->btmask)
+		SETBIT(gs->type, GS_BUTTON);
 	if (gs->dx || gs->dy) {
 		if (mt->mem.npoint == 1)
 			SETBIT(gs->type, GS_MOVE);
