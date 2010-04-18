@@ -32,6 +32,7 @@ static void set_value(struct HWData *hw, int code, int value)
 		(&hw->finger[hw->nread].touch_major)[code] = value;
 		SETBIT(hw->mread[hw->nread], code);
 	}
+	hw->mtread++;
 }
 
 static void accept_finger(struct HWData *hw)
@@ -49,7 +50,9 @@ static void accept_finger(struct HWData *hw)
 static void accept_packet(struct HWData *hw, const struct timeval* tv)
 {
 	static const mstime_t ms = 1000;
-	hw->nfinger = hw->nread;
+	if (hw->mtread)
+		hw->nfinger = hw->nread;
+	hw->mtread = 0;
 	hw->nread = 0;
 	hw->mread[hw->nread] = 0;
 	hw->evtime = tv->tv_usec / ms + tv->tv_sec * ms;
@@ -70,6 +73,9 @@ int read_hwdata(struct HWData *hw, const struct input_event* ev)
 		break;
 	case EV_KEY:
 		switch (ev->code) {
+		case BTN_TOUCH:
+			hw->mtread++;
+			break;
 		case BTN_LEFT:
 			if (ev->value)
 				SETBIT(hw->button, MT_BUTTON_LEFT);

@@ -73,7 +73,7 @@ struct HWData {
 	struct FingerData finger[DIM_FINGER];
 	unsigned mask[DIM_FINGER], mread[DIM_FINGER];
 	unsigned button;
-	int nfinger, nread;
+	int nfinger, mtread, nread;
 	mstime_t evtime;
 };
 
