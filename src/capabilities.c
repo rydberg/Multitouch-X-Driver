@@ -29,6 +29,7 @@
 #define CLICK_AREA(c) ((c->has_ibt ? 0.20 : 0.00) * get_cap_ysize(c))
 
 static const int SN_COORD = 250;	/* coordinate signal-to-noise ratio */
+static const int SN_WIDTH = 15;	/* width signal-to-noise ratio */
 
 static const int bits_per_long = 8 * sizeof(long);
 
@@ -103,6 +104,9 @@ int read_capabilities(struct Capabilities *cap, int fd)
 		cap->xfuzz = get_cap_xsize(cap) / SN_COORD;
 		cap->yfuzz = get_cap_ysize(cap) / SN_COORD;
 	}
+	cap->wfuzz = cap->abs_touch_major.fuzz;
+	if (cap->wfuzz <= 0)
+		cap->wfuzz = get_cap_wsize(cap) / SN_WIDTH;
 
 	cap->yclick = cap->abs_position_y.maximum - CLICK_AREA(cap);
 
@@ -117,6 +121,11 @@ int get_cap_xsize(const struct Capabilities *cap)
 int get_cap_ysize(const struct Capabilities *cap)
 {
 	return cap->abs_position_y.maximum - cap->abs_position_y.minimum;
+}
+
+int get_cap_wsize(const struct Capabilities *cap)
+{
+	return cap->abs_touch_major.maximum - cap->abs_touch_major.minimum;
 }
 
 void output_capabilities(const struct Capabilities *cap)

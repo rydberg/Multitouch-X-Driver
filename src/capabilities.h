@@ -40,13 +40,14 @@ struct Capabilities {
 	struct input_absinfo abs_orientation;
 	struct input_absinfo abs_position_x;
 	struct input_absinfo abs_position_y;
-	int xfuzz, yfuzz;
+	int xfuzz, yfuzz, wfuzz;
 	int yclick;
 };
 
 int read_capabilities(struct Capabilities *cap, int fd);
 int get_cap_xsize(const struct Capabilities *cap);
 int get_cap_ysize(const struct Capabilities *cap);
+int get_cap_wsize(const struct Capabilities *cap);
 
 void output_capabilities(const struct Capabilities *cap);
 

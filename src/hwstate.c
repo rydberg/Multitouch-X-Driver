@@ -69,14 +69,24 @@ static void set_finger(struct FingerState *fs,
 {
 	int x = defuzz(hw->position_x, fs->hw.position_x, caps->xfuzz);
 	int y = defuzz(hw->position_y, fs->hw.position_y, caps->yfuzz);
-	fs->hw = *hw;
+	int tj = defuzz(hw->touch_major, fs->hw.touch_major, caps->wfuzz);
+	int tn = defuzz(hw->touch_minor, fs->hw.touch_minor, caps->wfuzz);
+	int wj = defuzz(hw->width_major, fs->hw.width_major, caps->wfuzz);
+	int wn = defuzz(hw->width_minor, fs->hw.width_minor, caps->wfuzz);
 	fs->id = id;
+	fs->hw = *hw;
+	fs->hw.position_x = x;
+	fs->hw.position_y = y;
+	if (hw->touch_major) {
+		fs->hw.touch_major = tj;
+		fs->hw.touch_minor = tn;
+	}
+	fs->hw.width_major = wj;
+	fs->hw.width_minor = wn;
 	if (!caps->has_touch_minor)
 		fs->hw.touch_minor = hw->touch_major;
 	if (!caps->has_width_minor)
 		fs->hw.width_minor = hw->width_major;
-	fs->hw.position_x = x;
-	fs->hw.position_y = y;
 }
 
 void modify_hwstate(struct HWState *s,
