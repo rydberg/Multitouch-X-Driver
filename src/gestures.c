@@ -125,6 +125,8 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 		xcut = DELTA_CUT(xmax);
 		ycut = DELTA_CUT(ymax);
 		for (i = 0; i < mt->state.nfinger; i++) {
+			if (!GETBIT(mt->mem.pointing, i))
+				continue;
 			if (abs(mt->mem.dx[i]) > xcut ||
 			    abs(mt->mem.dy[i]) > ycut) {
 				SETBIT(mt->mem.moving, i);
