@@ -29,7 +29,7 @@
 #define CLICK_AREA(c) ((c->has_ibt ? 0.20 : 0.00) * get_cap_ysize(c))
 
 static const int SN_COORD = 250;	/* coordinate signal-to-noise ratio */
-static const int SN_WIDTH = 15;	/* width signal-to-noise ratio */
+static const int SN_WIDTH = 100;	/* width signal-to-noise ratio */
 
 static const int bits_per_long = 8 * sizeof(long);
 
