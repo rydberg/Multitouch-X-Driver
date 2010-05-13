@@ -31,8 +31,6 @@
 static const int FINGER_ATTACK_MS = 70;
 static const int FINGER_DECAY_MS = 120;
 
-static inline int maxval(int x, int y) { return x > y ? x : y; }
-
 inline int dxval(const struct FingerState *a, const struct FingerState *b)
 {
 	return a->hw.position_x - b->hw.position_x;

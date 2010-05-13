@@ -25,25 +25,9 @@
 
 #define NOTOUCH(hw, c) ((hw)->touch_major == 0 && (c)->has_touch_major)
 
-const int XMAX = 32767;
-
 void init_hwstate(struct HWState *s)
 {
 	memset(s, 0, sizeof(struct HWState));
-}
-
-static inline int clamp15(int x)
-{
-	return x < -XMAX ? -XMAX : x > XMAX ? XMAX : x;
-}
-
-/* abslute scale is assumed to fit in 15 bits */
-inline int dist2(const struct FingerData *a, const struct FingerData *b)
-{
-	int dx = clamp15(a->position_x - b->position_x);
-	int dy = clamp15(a->position_y - b->position_y);
-
-	return dx * dx + dy * dy;
 }
 
 /* Dmitry Torokhov's code from kernel/driver/input/input.c */
@@ -104,7 +88,7 @@ void modify_hwstate(struct HWState *s,
 			sid[j] = 0;
 		row = A + hw->nfinger * j;
 		for (i = 0; i < hw->nfinger; i++)
-			row[i] = dist2(&hw->finger[i], &s->finger[j].hw);
+			row[i] = finger_dist2(&hw->finger[i], &s->finger[j].hw);
 	}
 
 	match_fingers(hw2s, A, hw->nfinger, s->nfinger);

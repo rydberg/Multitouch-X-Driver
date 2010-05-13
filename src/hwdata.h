@@ -81,4 +81,11 @@ void init_hwdata(struct HWData *hw);
 int read_hwdata(struct HWData *hw, const struct input_event* ev);
 void output_hwdata(const struct HWData *hw);
 
+static inline int finger_dist2(const struct FingerData *a,
+			       const struct FingerData *b)
+{
+	return dist2(a->position_x - b->position_x,
+		     a->position_y - b->position_y);
+}
+
 #endif

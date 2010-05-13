@@ -61,6 +61,22 @@
 #define SETBIT(m, x) (m |= BITMASK(x))
 #define CLEARBIT(m, x) (m &= ~BITMASK(x))
 
+static inline int maxval(int x, int y) { return x > y ? x : y; }
+static inline int minval(int x, int y) { return x < y ? x : y; }
+
+static inline int clamp15(int x)
+{
+	return x < -32767 ? -32767 : x > 32767 ? 32767 : x;
+}
+
+/* absolute scale is assumed to fit in 15 bits */
+static inline int dist2(int dx, int dy)
+{
+	dx = clamp15(dx);
+	dy = clamp15(dy);
+	return dx * dx + dy * dy;
+}
+
 /* Count number of bits (Sean Eron Andersson's Bit Hacks) */
 static inline int bitcount(unsigned v)
 {
