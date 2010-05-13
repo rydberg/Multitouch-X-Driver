@@ -32,8 +32,6 @@ void output_memory(const struct Memory *m)
 	xf86Msg(X_INFO, "btdata: %04x\n", m->btdata);
 	xf86Msg(X_INFO, "pointing: %04x\n", m->pointing);
 	xf86Msg(X_INFO, "moving: %04x\n", m->moving);
-	xf86Msg(X_INFO, "npoint: %d\n", m->npoint);
 	xf86Msg(X_INFO, "ybar: %d\n", m->ybar);
 	xf86Msg(X_INFO, "move_time: %lld\n", m->move_time);
-	xf86Msg(X_INFO, "nmove: %d\n", m->nmove);
 }

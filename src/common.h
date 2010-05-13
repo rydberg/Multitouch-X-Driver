@@ -61,4 +61,19 @@
 #define SETBIT(m, x) (m |= BITMASK(x))
 #define CLEARBIT(m, x) (m &= ~BITMASK(x))
 
+/* Count number of bits (Sean Eron Andersson's Bit Hacks) */
+static inline int bitcount(unsigned v)
+{
+	v -= ((v>>1) & 0x55555555);
+	v = (v&0x33333333) + ((v>>2) & 0x33333333);
+	return (((v + (v>>4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+}
+
+/* Return index of first bit [0-31], -1 on zero */
+#define firstbit(v) (__builtin_ffs(v) - 1)
+
+/* boost-style foreach bit */
+#define foreach_bit(i, m)						\
+	for (i = firstbit(m); i >= 0; i = firstbit((m) & (~0U << i + 1)))
+
 #endif

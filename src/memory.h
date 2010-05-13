@@ -26,9 +26,9 @@
 
 struct Memory {
 	unsigned btdata, pointing, moving;
-	int npoint, ybar;
+	int ybar;
 	mstime_t move_time;
-	int dx[DIM_FINGER], dy[DIM_FINGER], nmove;
+	int dx[DIM_FINGER], dy[DIM_FINGER];
 
 
 

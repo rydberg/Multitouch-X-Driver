@@ -19,10 +19,23 @@
  *
  **************************************************************************/
 
+#include "common.h"
 #include <stdio.h>
 #include <time.h>
 
+static void print_bitfield(unsigned m)
+{
+	int i;
+
+	printf("%d\n", m);
+	foreach_bit(i, m)
+		printf("%d %d\n", i, 1 << i);
+}
+
 int main(int argc, char *argv[])
 {
+	print_bitfield(5);
+	print_bitfield(126);
+	print_bitfield(0);
 	return 0;
 }

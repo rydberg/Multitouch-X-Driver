@@ -58,7 +58,6 @@ static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 
 	if (mt->state.nfinger < 2) {
 		mt->mem.pointing = mt->state.nfinger;
-		mt->mem.npoint = mt->state.nfinger;
 		mt->mem.ybar = mt->caps.abs_position_y.maximum;
 		return;
 	}
@@ -69,7 +68,6 @@ static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 				continue;
 			if (f[i].hw.position_y <= mt->mem.ybar) {
 				mt->mem.pointing = BITONES(mt->state.nfinger);
-				mt->mem.npoint = mt->state.nfinger;
 				return;
 			}
 		}
@@ -77,15 +75,13 @@ static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 	}
 
 	mt->mem.pointing = 0;
-	mt->mem.npoint = 0;
 	mt->mem.ybar = mt->caps.yclick;
 	for (i = 0; i < mt->state.nfinger; i++) {
 		if (f[i].hw.position_y > mt->caps.yclick)
 			continue;
-		if (!mt->mem.npoint || f[i].hw.position_y > mt->mem.ybar)
+		if (!mt->mem.pointing || f[i].hw.position_y > mt->mem.ybar)
 			mt->mem.ybar = f[i].hw.position_y;
 		SETBIT(mt->mem.pointing, i);
-		mt->mem.npoint++;
 	}
 
 }
@@ -97,7 +93,6 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 	int dx, dy, xcut, ycut, xmax = 0, ymax = 0;
 
 	mt->mem.moving = 0;
-	mt->mem.nmove = 0;
 
 	if (mt->state.nfinger == 0)
 		return;
@@ -128,22 +123,21 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 			if (!GETBIT(mt->mem.pointing, i))
 				continue;
 			if (abs(mt->mem.dx[i]) > xcut ||
-			    abs(mt->mem.dy[i]) > ycut) {
+			    abs(mt->mem.dy[i]) > ycut)
 				SETBIT(mt->mem.moving, i);
-				mt->mem.nmove++;
-			}
 		}
 
 		/* accumulate all movement during delay */
-		if (mt->mem.nmove && mt->state.evtime >= mt->mem.move_time) {
+		if (mt->mem.moving && mt->state.evtime >= mt->mem.move_time) {
+			int nmove = bitcount(mt->mem.moving);
 			for (i = 0; i < mt->state.nfinger; i++) {
 				if (GETBIT(mt->mem.moving, i)) {
 					gs->dx += mt->mem.dx[i];
 					gs->dy += mt->mem.dy[i];
 				}
 			}
-			gs->dx /= mt->mem.nmove;
-			gs->dy /= mt->mem.nmove;
+			gs->dx /= nmove;
+			gs->dy /= nmove;
 			memset(mt->mem.dx, 0, sizeof(mt->mem.dx));
 			memset(mt->mem.dy, 0, sizeof(mt->mem.dy));
 		}
@@ -153,10 +147,11 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 {
 	unsigned btdata = mt->state.button & BITONES(DIM_BUTTON);
+	int npoint = bitcount(mt->mem.pointing);
 	if (mt->state.button == BITMASK(MT_BUTTON_LEFT)) {
-		if (mt->mem.npoint == 2)
+		if (npoint == 2)
 			btdata = BITMASK(MT_BUTTON_RIGHT);
-		if (mt->mem.npoint == 3)
+		if (npoint == 3)
 			btdata = BITMASK(MT_BUTTON_MIDDLE);
 	}
 	if (mt->state.button != mt->prev_state.button) {
@@ -170,18 +165,19 @@ static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 
 static void extract_type(struct Gestures *gs, struct MTouch* mt)
 {
+	int npoint = bitcount(mt->mem.pointing);
 	if (gs->btmask)
 		SETBIT(gs->type, GS_BUTTON);
 	if (gs->dx || gs->dy) {
-		if (mt->mem.npoint == 1)
+		if (npoint == 1)
 			SETBIT(gs->type, GS_MOVE);
-		if (mt->mem.npoint == 2) {
+		if (npoint == 2) {
 			if (gs->dx)
 				SETBIT(gs->type, GS_HSCROLL);
 			if (gs->dy)
 				SETBIT(gs->type, GS_VSCROLL);
 		}
-		if (mt->mem.npoint == 3) {
+		if (npoint == 3) {
 			if (gs->dx)
 				SETBIT(gs->type, GS_HSWIPE);
 			if (gs->dy)
