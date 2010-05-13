@@ -1,0 +1,8 @@
+Multitouch X Driver
+
+The Multitouch X Driver driver uses the kernel MT protocol to bring
+multi-touch gestures to the Linux desktop.
+
+---
+Copyright (C) 2008 Henrik Rydberg <rydberg@euromail.se>
+
