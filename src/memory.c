@@ -46,11 +46,11 @@ void init_memory(struct Memory *mem)
 /**
  * update_configuration
  *
- * Update the same, fingers, added memory variables.
+ * Update the same, fingers, added, and thumb memory variables.
  *
  * Precondition: none
  *
- * Postcondition: same, fingers, added are set
+ * Postcondition: same, fingers, added, thumb are set
  *
  */
 static void update_configuration(struct Memory *m,
@@ -66,6 +66,11 @@ static void update_configuration(struct Memory *m,
 			SETBIT(m->added, i);
 	m->same = m->fingers == fingers && m->added == 0;
 	m->fingers = fingers;
+	if (!m->same)
+		m->thumb = 0;
+	foreach_bit(i, fingers)
+		if (f[i].thumb)
+			SETBIT(m->thumb, i);
 }
 
 /**
@@ -73,7 +78,7 @@ static void update_configuration(struct Memory *m,
  *
  * Update the pointing and ybar memory variables.
  *
- * Precondition: fingers, added are set
+ * Precondition: fingers, added, thumb are set
  *
  * Postcondition: pointing, ybar are set
  *
@@ -121,7 +126,7 @@ static void update_pointers(struct Memory *m,
  * When moving is nonzero, gestures can be extracted from the dx and dy
  * variables. These variables should be cleared after use.
  *
- * Precondition: fingers, added, pointing are set
+ * Precondition: fingers, added, thumb, pointing are set
  *
  * Postcondition: pending, moving, mvhold, mvforget, dx, dy are set
  *

@@ -31,6 +31,7 @@
  * @same: true if the finger configuration is unchanged
  * @fingers: bitmask of fingers on the pad
  * @added: bitmask of new fingers on the pad
+ * @thumb: bitmask of thumbs on the pad
  * @pointing: bitmask of pointing fingers
  * @pending: bitmask of tentatively moving fingers
  * @moving: bitmask of moving fingers
@@ -43,7 +44,7 @@
  */
 struct Memory {
 	unsigned btdata, same;
-	unsigned fingers, added;
+	unsigned fingers, added, thumb;
 	unsigned pointing, pending, moving;
 	int ybar;
 	mstime_t mvhold, mvforget;

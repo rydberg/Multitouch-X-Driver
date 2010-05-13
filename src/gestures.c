@@ -25,6 +25,7 @@
 
 #include "gestures.h"
 
+static const int FINGER_THUMB_MS = 400;
 /**
  * extract_buttons
  *
@@ -83,11 +84,19 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 	ymove /= nmove;
 
 	if (nmove == 1) {
+		if (mt->mem.moving & mt->mem.thumb) {
+			mt_skip_movement(mt, FINGER_THUMB_MS);
+			return;
+		}
 		gs->dx = xmove;
 		gs->dy = ymove;
 		if (gs->dx || gs->dy)
 			SETBIT(gs->type, GS_MOVE);
 	} else {
+		if (mt->mem.moving & mt->mem.thumb) {
+			mt_skip_movement(mt, FINGER_THUMB_MS);
+			return;
+		}
 		gs->dx = xmove;
 		gs->dy = ymove;
 		if (abs(gs->dx) > abs(gs->dy)) {
