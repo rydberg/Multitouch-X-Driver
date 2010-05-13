@@ -24,6 +24,11 @@
 #define TOUCH_WIDTH(hw) (0.05 * hw->width_major)
 #define TOUCH_SCALE(caps) (0.05 * caps->abs_touch_major.maximum)
 
+#define THUMB_TOUCH(hw) (1.2 * hw->touch_minor)
+#define THUMB_WIDTH_TOUCH(hw) (3 * hw->touch_major)
+#define THUMB_WIDTH_WIDTH(hw) (1.2 * hw->width_minor)
+#define THUMB_WIDTH_SIZE(hw, caps) (0.15 * get_cap_xsize(caps))
+
 void init_mtstate(struct MTState *s)
 {
 	memset(s, 0, sizeof(struct MTState));
@@ -39,12 +44,33 @@ static int touching_finger(const struct FingerData *hw,
 	return 1;
 }
 
+/*
+ * Thumb detection:
+ *
+ * The thumb is large and oval, even when not pressed hard against the
+ * surface. The width_major parameter is therefore bounded from below
+ * by all three values touch_major, width_minor, and trackpad size.
+ *
+ */
+static int thumb_finger(const struct FingerData *hw,
+			const struct Capabilities *caps)
+{
+	if (!caps->has_touch_major || !caps->has_touch_minor ||
+	    !caps->has_width_major || !caps->has_width_minor)
+		return 0;
+	return	hw->touch_major > THUMB_TOUCH(hw) &&
+		hw->width_major > THUMB_WIDTH_TOUCH(hw) &&
+		hw->width_major > THUMB_WIDTH_WIDTH(hw) &&
+		hw->width_major > THUMB_WIDTH_SIZE(hw, caps);
+}
+
 static int set_finger(struct MTFinger *f,
 		      const struct FingerState *fs,
 		      const struct Capabilities *caps)
 {
 	f->hw = fs->hw;
 	f->id = fs->id;
+	f->thumb = thumb_finger(&fs->hw, caps);
 }
 
 void extract_mtstate(struct MTState *s,

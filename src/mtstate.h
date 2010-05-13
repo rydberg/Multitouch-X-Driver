@@ -26,7 +26,7 @@
 
 struct MTFinger {
 	struct FingerData hw;
-	int id;
+	int id, thumb;
 };
 
 struct MTState {
