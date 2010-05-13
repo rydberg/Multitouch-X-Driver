@@ -66,4 +66,8 @@ void parse_event(struct MTouch *mt)
 #if 0
 	output_mtstate(&mt->state);
 #endif
+	refresh_memory(&mt->mem, &mt->prev_state, &mt->state, &mt->caps);
+#if 0
+	output_memory(&mt->mem);
+#endif
 }

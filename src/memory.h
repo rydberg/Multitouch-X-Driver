@@ -24,17 +24,33 @@
 
 #include "mtstate.h"
 
+/**
+ * struct Memory - parsing state
+ *
+ * @btdata: logical finger state
+ * @same: true if the finger configuration is unchanged
+ * @pointing: bitmask of pointing fingers
+ * @pending: bitmask of tentatively moving fingers
+ * @moving: bitmask of moving fingers
+ * @ybar: vertical position on pad marking the clicking area
+ * @move_time: movement before this point in time is accumulated
+ * @dx: array of accumulated horiontal movement per finger
+ * @dy: array of accumulated vertical movement per finger
+ *
+ */
 struct Memory {
-	unsigned btdata, pointing, moving;
+	unsigned btdata, same;
+	unsigned pointing, pending, moving;
 	int ybar;
 	mstime_t move_time;
 	int dx[DIM_FINGER], dy[DIM_FINGER];
-
-
-
 };
 
 void init_memory(struct Memory *mem);
+void refresh_memory(struct Memory *m,
+		    const struct MTState *prev_state,
+		    const struct MTState *state,
+		    const struct Capabilities *caps);
 void output_memory(const struct Memory *m);
 
 #endif
