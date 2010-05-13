@@ -26,6 +26,8 @@
 #include "gestures.h"
 
 static const int FINGER_THUMB_MS = 400;
+static const int BUTTON_HOLD_MS = 200;
+
 /**
  * extract_buttons
  *
@@ -49,8 +51,10 @@ static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 		gs->btdata = btdata;
 		mt->mem.btdata = btdata;
 	}
-	if (gs->btmask)
+	if (gs->btmask) {
+		mt_delay_movement(mt, BUTTON_HOLD_MS);
 		SETBIT(gs->type, GS_BUTTON);
+	}
 }
 
 /**
