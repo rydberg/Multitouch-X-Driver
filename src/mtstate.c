@@ -39,6 +39,14 @@ static int touching_finger(const struct FingerData *hw,
 	return 1;
 }
 
+static int set_finger(struct MTFinger *f,
+		      const struct FingerState *fs,
+		      const struct Capabilities *caps)
+{
+	f->hw = fs->hw;
+	f->id = fs->id;
+}
+
 void extract_mtstate(struct MTState *s,
 		     const struct HWState *hs,
 		     const struct Capabilities *caps)
@@ -46,15 +54,18 @@ void extract_mtstate(struct MTState *s,
 	int i;
 
 	s->nfinger = 0;
-	for (i = 0; i < hs->nfinger; i++)
-		if (touching_finger(&hs->finger[i].hw, caps))
-			s->finger[s->nfinger++] = hs->finger[i];
+	for (i = 0; i < hs->nfinger; i++) {
+		if (!touching_finger(&hs->finger[i].hw, caps))
+			continue;
+		set_finger(&s->finger[s->nfinger], &hs->finger[i], caps);
+		s->nfinger++;
+	}
 
 	s->button = hs->button;
 	s->evtime = hs->evtime;
 }
 
-const struct FingerState *find_finger(const struct MTState *s, int id)
+const struct MTFinger *find_finger(const struct MTState *s, int id)
 {
 	int i;
 

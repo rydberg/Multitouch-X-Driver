@@ -24,8 +24,13 @@
 
 #include "hwstate.h"
 
+struct MTFinger {
+	struct FingerData hw;
+	int id;
+};
+
 struct MTState {
-	struct FingerState finger[DIM_FINGER];
+	struct MTFinger finger[DIM_FINGER];
 	int nfinger;
 	unsigned button;
 	mstime_t evtime;
@@ -37,7 +42,7 @@ void extract_mtstate(struct MTState *s,
 		     const struct Capabilities *caps);
 void output_mtstate(const struct MTState *s);
 
-const struct FingerState *find_finger(const struct MTState *s, int id);
+const struct MTFinger *find_finger(const struct MTState *s, int id);
 
 #endif
 

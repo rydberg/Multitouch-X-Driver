@@ -31,18 +31,18 @@
 static const int FINGER_ATTACK_MS = 70;
 static const int FINGER_DECAY_MS = 120;
 
-inline int dxval(const struct FingerState *a, const struct FingerState *b)
+inline int dxval(const struct MTFinger *a, const struct MTFinger *b)
 {
 	return a->hw.position_x - b->hw.position_x;
 }
-inline int dyval(const struct FingerState *a, const struct FingerState *b)
+inline int dyval(const struct MTFinger *a, const struct MTFinger *b)
 {
 	return a->hw.position_y - b->hw.position_y;
 }
 
 static void extract_finger_configuration(struct Gestures *gs, struct MTouch* mt)
 {
-	const struct FingerState *f = mt->state.finger;
+	const struct MTFinger *f = mt->state.finger;
 	int i, same = mt->state.nfinger == mt->prev_state.nfinger;
 	for (i = 0; i < mt->state.nfinger; i++)
 		same = same && find_finger(&mt->prev_state, f[i].id);
@@ -51,7 +51,7 @@ static void extract_finger_configuration(struct Gestures *gs, struct MTouch* mt)
 
 static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 {
-	const struct FingerState *f = mt->state.finger;
+	const struct MTFinger *f = mt->state.finger;
 	int i;
 
 	if (mt->state.nfinger < 2) {
@@ -86,7 +86,7 @@ static void extract_pointers(struct Gestures *gs, struct MTouch* mt)
 
 static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 {
-	const struct FingerState *prev, *f = mt->state.finger;
+	const struct MTFinger *prev, *f = mt->state.finger;
 	int i, x = 0, y = 0;
 	int dx, dy, xcut, ycut, xmax = 0, ymax = 0;
 
