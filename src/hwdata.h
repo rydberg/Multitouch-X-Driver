@@ -24,7 +24,7 @@
 
 #include "common.h"
 
-#define DIM_BUTTON 11
+#define DIM_BUTTON 13
 
 #define MT_BUTTON_LEFT 0
 #define MT_BUTTON_MIDDLE 1
@@ -37,6 +37,8 @@
 #define MT_BUTTON_SWIPE_DOWN 8
 #define MT_BUTTON_SWIPE_LEFT 9
 #define MT_BUTTON_SWIPE_RIGHT 10
+#define MT_BUTTON_SCALE_DOWN 11
+#define MT_BUTTON_SCALE_UP 12
 
 #define BIT_MT_TOUCH_MAJOR 0
 #define BIT_MT_TOUCH_MINOR 1

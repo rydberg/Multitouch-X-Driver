@@ -70,22 +70,32 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 	int npoint = bitcount(mt->mem.pointing);
 	int nmove = bitcount(mt->mem.moving);
 	int i;
+	float xp[DIM_FINGER], yp[DIM_FINGER];
 	float xm[DIM_FINGER], ym[DIM_FINGER];
-	float xmove = 0, ymove = 0;
+	float xpos = 0, ypos = 0;
+	float move, xmove = 0, ymove = 0;
+	float rad, rad2 = 0, scale = 0;
 
 	if (!nmove || nmove != npoint)
 		return;
 
 	foreach_bit(i, mt->mem.moving) {
+		xp[i] = mt->state.finger[i].hw.position_x - xpos;
+		yp[i] = mt->state.finger[i].hw.position_y - ypos;
 		xm[i] = mt->mem.dx[i];
 		ym[i] = mt->mem.dy[i];
 		mt->mem.dx[i] = 0;
 		mt->mem.dy[i] = 0;
+		xpos += xp[i];
+		ypos += yp[i];
 		xmove += xm[i];
 		ymove += ym[i];
 	}
+	xpos /= nmove;
+	ypos /= nmove;
 	xmove /= nmove;
 	ymove /= nmove;
+	move = sqrt(xmove * xmove + ymove * ymove);
 
 	if (nmove == 1) {
 		if (mt->mem.moving & mt->mem.thumb) {
@@ -96,6 +106,28 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 		gs->dy = ymove;
 		if (gs->dx || gs->dy)
 			SETBIT(gs->type, GS_MOVE);
+		return;
+	}
+
+	foreach_bit(i, mt->mem.moving) {
+		xp[i] -= xpos;
+		yp[i] -= ypos;
+		rad2 += xp[i] * xp[i];
+		rad2 += yp[i] * yp[i];
+		scale += xp[i] * xm[i];
+		scale += yp[i] * ym[i];
+	}
+	rad2 /= nmove;
+	scale /= nmove;
+	rad = sqrt(rad2);
+	scale /= rad;
+
+	if (abs(scale) > move) {
+		gs->scale = scale;
+		if (gs->scale) {
+			if (nmove == 2)
+				SETBIT(gs->type, GS_SCALE);
+		}
 	} else {
 		if (mt->mem.moving & mt->mem.thumb) {
 			mt_skip_movement(mt, FINGER_THUMB_MS);
