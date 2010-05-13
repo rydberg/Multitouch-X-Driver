@@ -32,6 +32,7 @@ static const float hscroll_fraction = 0.05;
 static const float vswipe_fraction = 0.25;
 static const float hswipe_fraction = 0.25;
 static const float scale_fraction = 0.05;
+static const float rot_fraction = 0.05;
 
 /* flip these to enable event debugging */
 #if 1
@@ -85,6 +86,8 @@ static void initButtonLabels(Atom map[DIM_BUTTON])
 	/* how to map scale and rotate? */
 	PROPMAP(map, MT_BUTTON_SCALE_DOWN, BTN_LABEL_PROP_BTN_4);
 	PROPMAP(map, MT_BUTTON_SCALE_UP, BTN_LABEL_PROP_BTN_5);
+	PROPMAP(map, MT_BUTTON_ROTATE_LEFT, BTN_LABEL_PROP_BTN_6);
+	PROPMAP(map, MT_BUTTON_ROTATE_RIGHT, BTN_LABEL_PROP_BTN_7);
 }
 #endif
 
@@ -92,7 +95,7 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 {
 	struct MTouch *mt = local->private;
 	unsigned char btmap[DIM_BUTTON + 1] = {
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 	};
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 	Atom axes_labels[2], btn_labels[DIM_BUTTON];
@@ -213,12 +216,13 @@ static void handle_gestures(LocalDevicePtr local,
 			    const struct Gestures *gs,
 			    const struct Capabilities *caps)
 {
-	static int vscroll, hscroll, vswipe, hswipe, scale;
+	static int vscroll, hscroll, vswipe, hswipe, scale, rot;
 	int vscrollstep = 1 + vscroll_fraction * get_cap_ysize(caps);
 	int hscrollstep = 1 + hscroll_fraction * get_cap_xsize(caps);
 	int vswipestep = 1 + vswipe_fraction * get_cap_ysize(caps);
 	int hswipestep = 1 + hswipe_fraction * get_cap_xsize(caps);
 	int scalestep = 1 + scale_fraction * get_cap_xsize(caps);
+	int rotstep = 1 + rot_fraction * get_cap_xsize(caps);
 	int i;
 	if (!gs->same_fingers) {
 		vscroll = 0;
@@ -257,6 +261,10 @@ static void handle_gestures(LocalDevicePtr local,
 	if (GETBIT(gs->type, GS_SCALE)) {
 		button_scroll(local, 12, 13, &scale, scalestep, gs->scale);
 		TRACE1("scale: %d\n", gs->scale);
+	}
+	if (GETBIT(gs->type, GS_ROTATE)) {
+		button_scroll(local, 14, 15, &rot, rotstep, gs->rot);
+		TRACE1("rotate: %d\n", gs->rot);
 	}
 }
 

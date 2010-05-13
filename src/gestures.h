@@ -31,10 +31,11 @@
 #define GS_VSWIPE 4
 #define GS_HSWIPE 5
 #define GS_SCALE 6
+#define GS_ROTATE 7
 
 struct Gestures {
 	unsigned type, btmask, btdata;
-	int same_fingers, dx, dy, scale;
+	int same_fingers, dx, dy, scale, rot;
 };
 
 void extract_gestures(struct Gestures *gs, struct MTouch* mt);

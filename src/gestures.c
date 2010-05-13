@@ -74,7 +74,8 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 	float xm[DIM_FINGER], ym[DIM_FINGER];
 	float xpos = 0, ypos = 0;
 	float move, xmove = 0, ymove = 0;
-	float rad, rad2 = 0, scale = 0;
+	float rad, rad2 = 0, scale = 0, rot = 0;
+
 
 	if (!nmove || nmove != npoint)
 		return;
@@ -116,13 +117,23 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 		rad2 += yp[i] * yp[i];
 		scale += xp[i] * xm[i];
 		scale += yp[i] * ym[i];
+		rot += xp[i] * ym[i];
+		rot -= yp[i] * xm[i];
 	}
 	rad2 /= nmove;
 	scale /= nmove;
+	rot /= nmove;
 	rad = sqrt(rad2);
 	scale /= rad;
+	rot /= rad;
 
-	if (abs(scale) > move) {
+	if (abs(rot) > move && abs(rot) > abs(scale)) {
+		gs->rot = rot;
+		if (gs->rot) {
+			if (nmove == 2)
+				SETBIT(gs->type, GS_ROTATE);
+		}
+	} else if (abs(scale) > move) {
 		gs->scale = scale;
 		if (gs->scale) {
 			if (nmove == 2)
