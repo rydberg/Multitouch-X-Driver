@@ -128,6 +128,16 @@ int get_cap_wsize(const struct Capabilities *cap)
 	return cap->abs_touch_major.maximum - cap->abs_touch_major.minimum;
 }
 
+int get_cap_xmid(const struct Capabilities *cap)
+{
+	return (cap->abs_position_x.maximum + cap->abs_position_x.minimum) >> 1;
+}
+
+int get_cap_ymid(const struct Capabilities *cap)
+{
+	return (cap->abs_position_y.maximum + cap->abs_position_y.minimum) >> 1;
+}
+
 void output_capabilities(const struct Capabilities *cap)
 {
 	char line[1024];

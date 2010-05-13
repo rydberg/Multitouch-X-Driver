@@ -49,6 +49,9 @@ int get_cap_xsize(const struct Capabilities *cap);
 int get_cap_ysize(const struct Capabilities *cap);
 int get_cap_wsize(const struct Capabilities *cap);
 
+int get_cap_xmid(const struct Capabilities *cap);
+int get_cap_ymid(const struct Capabilities *cap);
+
 void output_capabilities(const struct Capabilities *cap);
 
 #endif

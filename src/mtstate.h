@@ -44,5 +44,19 @@ void output_mtstate(const struct MTState *s);
 
 const struct MTFinger *find_finger(const struct MTState *s, int id);
 
+
+static inline int center_dist2(const struct MTFinger *a,
+			       const struct Capabilities *caps)
+{
+	return dist2(a->hw.position_x - get_cap_xmid(caps),
+		     a->hw.position_y - get_cap_ymid(caps));
+}
+
+static inline int center_maxdist2(const struct Capabilities *caps)
+{
+	return dist2(caps->abs_position_x.maximum - get_cap_xmid(caps),
+		     caps->abs_position_y.maximum - get_cap_ymid(caps));
+}
+
 #endif
 
