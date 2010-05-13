@@ -45,4 +45,15 @@ int close_mtouch(struct MTouch *mt, int fd);
 int read_synchronized_event(struct MTouch *mt, int fd);
 void parse_event(struct MTouch *mt);
 
+
+static inline void mt_delay_movement(struct MTouch *mt, int t)
+{
+	mem_hold_movement(&mt->mem, mt->state.evtime + t);
+}
+
+static inline void mt_skip_movement(struct MTouch *mt, int t)
+{
+	mem_forget_movement(&mt->mem, mt->state.evtime + t);
+}
+
 #endif

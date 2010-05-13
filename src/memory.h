@@ -29,20 +29,24 @@
  *
  * @btdata: logical finger state
  * @same: true if the finger configuration is unchanged
+ * @fingers: bitmask of fingers on the pad
+ * @added: bitmask of new fingers on the pad
  * @pointing: bitmask of pointing fingers
  * @pending: bitmask of tentatively moving fingers
  * @moving: bitmask of moving fingers
  * @ybar: vertical position on pad marking the clicking area
- * @move_time: movement before this point in time is accumulated
+ * @mvhold: movement before this point in time is accumulated
+ * @mvforget: movement before this point in time is discarded
  * @dx: array of accumulated horiontal movement per finger
  * @dy: array of accumulated vertical movement per finger
  *
  */
 struct Memory {
 	unsigned btdata, same;
+	unsigned fingers, added;
 	unsigned pointing, pending, moving;
 	int ybar;
-	mstime_t move_time;
+	mstime_t mvhold, mvforget;
 	int dx[DIM_FINGER], dy[DIM_FINGER];
 };
 
@@ -52,5 +56,17 @@ void refresh_memory(struct Memory *m,
 		    const struct MTState *state,
 		    const struct Capabilities *caps);
 void output_memory(const struct Memory *m);
+
+static inline void mem_hold_movement(struct Memory *m, mstime_t t)
+{
+	if (t > m->mvhold)
+		m->mvhold = t;
+}
+
+static inline void mem_forget_movement(struct Memory *m, mstime_t t)
+{
+	if (t > m->mvforget)
+		m->mvforget = t;
+}
 
 #endif

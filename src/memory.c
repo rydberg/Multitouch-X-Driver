@@ -22,11 +22,12 @@
 #include "memory.h"
 
 /* fraction of max movement threshold */
-#define DELTA_CUT(x) (0.2 * (x))
+#define DELTA_CUT(x) (0.5 * (x))
 
 /* timer for cursor stability on finger touch/release */
-static const int FINGER_ATTACK_MS = 70;
+static const int FINGER_ATTACK_MS = 40;
 static const int FINGER_DECAY_MS = 120;
+static const int FINGER_CORNER_MS = 150;
 
 static inline int dxval(const struct MTFinger *a, const struct MTFinger *b)
 {
@@ -57,10 +58,14 @@ static void update_configuration(struct Memory *m,
 				 const struct MTState *state)
 {
 	const struct MTFinger *f = state->finger;
+	unsigned fingers = BITONES(state->nfinger);
 	int i;
-	m->same = state->nfinger == prev_state->nfinger;
-	for (i = 0; i < state->nfinger; i++)
-		m->same = m->same && find_finger(prev_state, f[i].id);
+	m->added = 0;
+	foreach_bit(i, fingers)
+		if (!find_finger(prev_state, f[i].id))
+			SETBIT(m->added, i);
+	m->same = m->fingers == fingers && m->added == 0;
+	m->fingers = fingers;
 }
 
 /**
@@ -81,17 +86,15 @@ static void update_pointers(struct Memory *m,
 	int i;
 
 	if (state->nfinger < 2) {
-		m->pointing = state->nfinger;
+		m->pointing = m->fingers;
 		m->ybar = caps->abs_position_y.maximum;
 		return;
 	}
 
 	if (m->same) {
-		for (i = 0; i < state->nfinger; i++) {
-			if (GETBIT(m->pointing, i))
-				continue;
+		foreach_bit(i, m->fingers & ~m->pointing) {
 			if (f[i].hw.position_y <= m->ybar) {
-				m->pointing = BITONES(state->nfinger);
+				m->pointing = m->fingers;
 				return;
 			}
 		}
@@ -100,7 +103,7 @@ static void update_pointers(struct Memory *m,
 
 	m->pointing = 0;
 	m->ybar = caps->yclick;
-	for (i = 0; i < state->nfinger; i++) {
+	foreach_bit(i, m->fingers) {
 		if (f[i].hw.position_y > caps->yclick)
 			continue;
 		if (!m->pointing || f[i].hw.position_y > m->ybar)
@@ -129,49 +132,50 @@ static void update_movement(struct Memory *m,
 			    const struct Capabilities *caps)
 {
 	const struct MTFinger *prev, *f = state->finger;
-	int i, x = 0, y = 0;
-	int dx, dy, xcut, ycut, xmax = 0, ymax = 0;
+	int i, xcut, ycut, xmax = 0, ymax = 0;
 
-	m->pending = 0;
 	m->moving = 0;
-
-	if (state->nfinger == 0)
-		return;
+	m->pending = 0;
 
 	if (!m->same) {
-		m->move_time = state->evtime;
-		if (state->nfinger > prev_state->nfinger)
-			m->move_time += FINGER_ATTACK_MS;
-		else
-			m->move_time += FINGER_DECAY_MS;
+		mstime_t d2, d2max = center_maxdist2(caps);
+		mem_hold_movement(m, state->evtime + FINGER_ATTACK_MS);
+		if (!m->added)
+			mem_hold_movement(m, state->evtime + FINGER_DECAY_MS);
+		foreach_bit(i, m->added) {
+			d2 = center_dist2(&f[i], caps);
+			d2 *= FINGER_CORNER_MS - FINGER_ATTACK_MS;
+			d2 /= d2max;
+			m->mvhold += d2;
+		}
 		memset(m->dx, 0, sizeof(m->dx));
 		memset(m->dy, 0, sizeof(m->dy));
-	} else {
-		for (i = 0; i < state->nfinger; i++) {
-			if (!GETBIT(m->pointing, i))
-				continue;
-			prev = find_finger(prev_state, f[i].id);
-			dx = dxval(&f[i], prev);
-			dy = dyval(&f[i], prev);
-			m->dx[i] += dx;
-			m->dy[i] += dy;
-			xmax = maxval(xmax, abs(m->dx[i]));
-			ymax = maxval(ymax, abs(m->dy[i]));
-		}
-		xcut = DELTA_CUT(xmax);
-		ycut = DELTA_CUT(ymax);
-		for (i = 0; i < state->nfinger; i++) {
-			if (!GETBIT(m->pointing, i))
-				continue;
-			if (abs(m->dx[i]) > xcut ||
-			    abs(m->dy[i]) > ycut)
-				SETBIT(m->pending, i);
-		}
-
-		/* accumulate all movement during delay */
-		if (m->pending && state->evtime >= m->move_time)
-			m->moving = m->pending;
+		return;
 	}
+
+	if (state->evtime < m->mvforget)
+		return;
+
+	foreach_bit(i, m->pointing) {
+		int dx, dy;
+		prev = find_finger(prev_state, f[i].id);
+		dx = dxval(&f[i], prev);
+		dy = dyval(&f[i], prev);
+		m->dx[i] += dx;
+		m->dy[i] += dy;
+		xmax = maxval(xmax, abs(m->dx[i]));
+		ymax = maxval(ymax, abs(m->dy[i]));
+	}
+	xcut = DELTA_CUT(xmax);
+	ycut = DELTA_CUT(ymax);
+	foreach_bit(i, m->pointing)
+		if (abs(m->dx[i]) > xcut || abs(m->dy[i]) > ycut)
+			SETBIT(m->pending, i);
+
+	if (state->evtime < m->mvhold)
+		return;
+
+	m->moving = m->pending;
 }
 
 void refresh_memory(struct Memory *m,
@@ -188,9 +192,10 @@ void output_memory(const struct Memory *m)
 {
 	int i;
 	xf86Msg(X_INFO, "btdata: %04x\n", m->btdata);
+	xf86Msg(X_INFO, "fingers: %04x\n", m->fingers);
+	xf86Msg(X_INFO, "added: %04x\n", m->added);
 	xf86Msg(X_INFO, "pointing: %04x\n", m->pointing);
 	xf86Msg(X_INFO, "pending: %04x\n", m->pending);
 	xf86Msg(X_INFO, "moving: %04x\n", m->moving);
 	xf86Msg(X_INFO, "ybar: %d\n", m->ybar);
-	xf86Msg(X_INFO, "move_time: %lld\n", m->move_time);
 }

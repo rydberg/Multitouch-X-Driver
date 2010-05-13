@@ -65,31 +65,41 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 	int npoint = bitcount(mt->mem.pointing);
 	int nmove = bitcount(mt->mem.moving);
 	int i;
-	if (nmove && mt->state.evtime >= mt->mem.move_time) {
-		for (i = 0; i < mt->state.nfinger; i++) {
-			if (GETBIT(mt->mem.moving, i)) {
-				gs->dx += mt->mem.dx[i];
-				gs->dy += mt->mem.dy[i];
-			}
-		}
-		gs->dx /= nmove;
-		gs->dy /= nmove;
-		memset(mt->mem.dx, 0, sizeof(mt->mem.dx));
-		memset(mt->mem.dy, 0, sizeof(mt->mem.dy));
+	float xm[DIM_FINGER], ym[DIM_FINGER];
+	float xmove = 0, ymove = 0;
+
+	if (!nmove || nmove != npoint)
+		return;
+
+	foreach_bit(i, mt->mem.moving) {
+		xm[i] = mt->mem.dx[i];
+		ym[i] = mt->mem.dy[i];
+		mt->mem.dx[i] = 0;
+		mt->mem.dy[i] = 0;
+		xmove += xm[i];
+		ymove += ym[i];
 	}
-	if (gs->dx || gs->dy) {
-		if (npoint == 1)
+	xmove /= nmove;
+	ymove /= nmove;
+
+	if (nmove == 1) {
+		gs->dx = xmove;
+		gs->dy = ymove;
+		if (gs->dx || gs->dy)
 			SETBIT(gs->type, GS_MOVE);
-		if (npoint == 2) {
-			if (gs->dx)
+	} else {
+		gs->dx = xmove;
+		gs->dy = ymove;
+		if (abs(gs->dx) > abs(gs->dy)) {
+			if (nmove == 2)
 				SETBIT(gs->type, GS_HSCROLL);
-			if (gs->dy)
-				SETBIT(gs->type, GS_VSCROLL);
-		}
-		if (npoint == 3) {
-			if (gs->dx)
+			if (nmove == 3)
 				SETBIT(gs->type, GS_HSWIPE);
-			if (gs->dy)
+		}
+		if (abs(gs->dy) > abs(gs->dx)) {
+			if (nmove == 2)
+				SETBIT(gs->type, GS_VSCROLL);
+			if (nmove == 3)
 				SETBIT(gs->type, GS_VSWIPE);
 		}
 	}
