@@ -127,7 +127,7 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 				pointer_control,
 				GetMotionHistorySize(),
 				2);
-#elif GET_ABI_MAJOR(ABI_XINPUT_VERSION) == 7
+#elif GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 	InitPointerDeviceStruct((DevicePtr)dev,
 				btmap, DIM_BUTTON, btn_labels,
 				pointer_control,
