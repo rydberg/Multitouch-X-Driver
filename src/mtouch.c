@@ -21,6 +21,8 @@
 
 #include "mtouch.h"
 
+static const int use_grab = 1;
+
 int configure_mtouch(struct MTouch *mt, int fd)
 {
 	int rc = read_capabilities(&mt->caps, fd);
@@ -32,22 +34,28 @@ int configure_mtouch(struct MTouch *mt, int fd)
 
 int open_mtouch(struct MTouch *mt, int fd)
 {
-	int rc;
 	mtdev_init(&mt->dev, &mt->caps);
 	init_iobuf(&mt->buf);
 	init_hwstate(&mt->hs, &mt->caps);
 	init_mtstate(&mt->prev_state);
 	init_mtstate(&mt->state);
 	init_memory(&mt->mem);
-	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
-	return rc;
+	if (use_grab) {
+		int rc;
+		SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
+		return rc;
+	}
+	return 0;
 }
 
 int close_mtouch(struct MTouch *mt, int fd)
 {
-	int rc;
-	SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)0));
-	return rc;
+	if (use_grab) {
+		int rc;
+		SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)0));
+	}
+	mtdev_destroy(&mt->dev);
+	return 0;
 }
 
 int parse_event(struct MTouch *mt, const struct input_event *ev)
