@@ -76,7 +76,7 @@
 #define DIM2_FINGER (DIM_FINGER * DIM_FINGER)
 
 /* event buffer size (must be a power of two) */
-#define DIM_EVENTS 64
+#define DIM_EVENTS 512
 
 /* year-proof millisecond event time */
 typedef __u64 mstime_t;
