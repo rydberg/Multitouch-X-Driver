@@ -34,15 +34,6 @@ static const float hswipe_fraction = 0.25;
 static const float scale_fraction = 0.05;
 static const float rot_fraction = 0.05;
 
-/* flip these to enable event debugging */
-#if 1
-#define TRACE1(format, arg1)
-#define TRACE2(format, arg1, arg2)
-#else
-#define TRACE1(format, arg1) xf86Msg(X_INFO, format, arg1)
-#define TRACE2(format, arg1, arg2) xf86Msg(X_INFO, format, arg1, arg2)
-#endif
-
 /* button mapping simplified */
 #define PROPMAP(m, x, y) m[x] = XIGetKnownProperty(y)
 
@@ -217,12 +208,6 @@ static void handle_gestures(LocalDevicePtr local,
 			    const struct Capabilities *caps)
 {
 	static int vscroll, hscroll, vswipe, hswipe, scale, rot;
-	int vscrollstep = 1 + vscroll_fraction * get_cap_ysize(caps);
-	int hscrollstep = 1 + hscroll_fraction * get_cap_xsize(caps);
-	int vswipestep = 1 + vswipe_fraction * get_cap_ysize(caps);
-	int hswipestep = 1 + hswipe_fraction * get_cap_xsize(caps);
-	int scalestep = 1 + scale_fraction * get_cap_xsize(caps);
-	int rotstep = 1 + rot_fraction * get_cap_xsize(caps);
 	int i;
 	if (!gs->same_fingers) {
 		vscroll = 0;
@@ -231,40 +216,36 @@ static void handle_gestures(LocalDevicePtr local,
 		hswipe = 0;
 	}
 	for (i = 0; i < DIM_BUTTON; i++) {
-		if (GETBIT(gs->btmask, i)) {
+		if (GETBIT(gs->btmask, i))
 			xf86PostButtonEvent(local->dev, FALSE,
 					    i + 1, GETBIT(gs->btdata, i), 0, 0);
-			TRACE2("button bit: %d %d\n", i, GETBIT(gs->btdata, i));
-		}
 	}
-	if (GETBIT(gs->type, GS_MOVE)) {
-		xf86PostMotionEvent(local->dev, 0, 0, 2,
-				    gs->dx, gs->dy);
-		TRACE2("motion: %d %d\n", gs->dx, gs->dy);
-	}
+	if (GETBIT(gs->type, GS_MOVE))
+		xf86PostMotionEvent(local->dev, 0, 0, 2, gs->dx, gs->dy);
+
 	if (GETBIT(gs->type, GS_VSCROLL)) {
-		button_scroll(local, 4, 5, &vscroll, vscrollstep, gs->dy);
-		TRACE1("vscroll: %d\n", gs->dy);
+		int step = 1 + vscroll_fraction * get_cap_ysize(caps);
+		button_scroll(local, 4, 5, &vscroll, step, gs->dy);
 	}
 	if (GETBIT(gs->type, GS_HSCROLL)) {
-		button_scroll(local, 6, 7, &hscroll, hscrollstep, gs->dx);
-		TRACE1("hscroll: %d\n", gs->dx);
+		int step = 1 + hscroll_fraction * get_cap_xsize(caps);
+		button_scroll(local, 6, 7, &hscroll, step, gs->dx);
 	}
 	if (GETBIT(gs->type, GS_VSWIPE)) {
-		button_scroll(local, 8, 9, &vswipe, vswipestep, gs->dy);
-		TRACE1("vswipe: %d\n", gs->dy);
+		int step = 1 + vswipe_fraction * get_cap_ysize(caps);
+		button_scroll(local, 8, 9, &vswipe, step, gs->dy);
 	}
 	if (GETBIT(gs->type, GS_HSWIPE)) {
-		button_scroll(local, 10, 11, &hswipe, hswipestep, gs->dx);
-		TRACE1("hswipe: %d\n", gs->dx);
+		int step = 1 + hswipe_fraction * get_cap_xsize(caps);
+		button_scroll(local, 10, 11, &hswipe, step, gs->dx);
 	}
 	if (GETBIT(gs->type, GS_SCALE)) {
-		button_scroll(local, 12, 13, &scale, scalestep, gs->scale);
-		TRACE1("scale: %d\n", gs->scale);
+		int step = 1 + scale_fraction * get_cap_xsize(caps);
+		button_scroll(local, 12, 13, &scale, step, gs->scale);
 	}
 	if (GETBIT(gs->type, GS_ROTATE)) {
-		button_scroll(local, 14, 15, &rot, rotstep, gs->rot);
-		TRACE1("rotate: %d\n", gs->rot);
+		int step = 1 + rot_fraction * get_cap_xsize(caps);
+		button_scroll(local, 14, 15, &rot, step, gs->rot);
 	}
 }
 
