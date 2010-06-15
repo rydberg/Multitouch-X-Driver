@@ -30,7 +30,7 @@
 /* timer for cursor stability on finger touch/release */
 static const int FINGER_ATTACK_MS = 40;
 static const int FINGER_DECAY_MS = 120;
-static const int FINGER_CORNER_MS = 150;
+static const int FINGER_CORNER_MS = 300;
 
 static inline int dxval(const struct FingerState *a,
 			const struct FingerState *b)

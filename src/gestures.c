@@ -25,7 +25,7 @@
 
 #include "gestures.h"
 
-static const int FINGER_THUMB_MS = 400;
+static const int FINGER_THUMB_MS = 600;
 static const int BUTTON_HOLD_MS = 200;
 
 /**
