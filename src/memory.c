@@ -61,7 +61,7 @@ static void update_configuration(struct Memory *m,
 				 const struct MTState *state)
 {
 	const struct MTFinger *f = state->finger;
-	unsigned fingers = BITONES(state->nfinger);
+	bitmask_t fingers = BITONES(state->nfinger);
 	int i;
 	m->added = 0;
 	foreach_bit(i, fingers)

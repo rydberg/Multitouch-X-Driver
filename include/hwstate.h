@@ -33,7 +33,7 @@ struct FingerState {
 
 struct HWState {
 	struct FingerState finger[DIM_FINGER];
-	unsigned button;
+	bitmask_t button;
 	int nfinger;
 	mstime_t evtime;
 	int lastid;

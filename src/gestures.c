@@ -38,7 +38,7 @@ static const int BUTTON_HOLD_MS = 200;
  */
 static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 {
-	unsigned btdata = mt->state.button & BITONES(DIM_BUTTON);
+	bitmask_t btdata = mt->state.button & BITONES(DIM_BUTTON);
 	int npoint = bitcount(mt->mem.pointing);
 	if (mt->state.button == BITMASK(MT_BUTTON_LEFT)) {
 		if (npoint == 2)

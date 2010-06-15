@@ -43,9 +43,9 @@
  *
  */
 struct Memory {
-	unsigned btdata, same;
-	unsigned fingers, added, thumb;
-	unsigned pointing, pending, moving;
+	bitmask_t btdata, same;
+	bitmask_t fingers, added, thumb;
+	bitmask_t pointing, pending, moving;
 	int ybar;
 	mstime_t mvhold, mvforget;
 	int dx[DIM_FINGER], dy[DIM_FINGER];

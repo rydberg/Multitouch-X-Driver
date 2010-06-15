@@ -34,7 +34,7 @@
 #define GS_ROTATE 7
 
 struct Gestures {
-	unsigned type, btmask, btdata;
+	bitmask_t type, btmask, btdata;
 	int same_fingers, dx, dy, scale, rot;
 };
 

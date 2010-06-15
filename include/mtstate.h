@@ -32,7 +32,7 @@ struct MTFinger {
 struct MTState {
 	struct MTFinger finger[DIM_FINGER];
 	int nfinger;
-	unsigned button;
+	bitmask_t button;
 	mstime_t evtime;
 };
 
