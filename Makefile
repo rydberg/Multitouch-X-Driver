@@ -9,7 +9,7 @@ XMODULES = driver
 
 o_match	= match
 
-o_mtdev	= iobuf caps hwdata
+o_mtdev	= iobuf caps core hwdata
 
 o_src	= hwstate mtstate memory mtouch gestures
 
@@ -17,6 +17,7 @@ o_driver= multitouch
 
 TARGETS	+= match/test
 TARGETS	+= mtdev/mapgen
+TARGETS	+= mtdev/test
 TARGETS	+= src/test
 
 OBJECTS	= $(addsuffix .o,\
