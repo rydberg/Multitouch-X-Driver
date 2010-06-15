@@ -21,6 +21,9 @@
 
 #include "memory.h"
 
+/* click area definition */
+#define CLICK_AREA(c) ((c->has_ibt ? 0.20 : 0.00) * get_cap_ysize(c))
+
 /* fraction of max movement threshold */
 #define DELTA_CUT(x) (0.5 * (x))
 
@@ -88,11 +91,12 @@ static void update_pointers(struct Memory *m,
 			    const struct Capabilities *caps)
 {
 	const struct MTFinger *f = state->finger;
+	int yclick = caps->abs[BIT_POSITION_Y].maximum - CLICK_AREA(caps);
 	int i;
 
 	if (state->nfinger < 2) {
 		m->pointing = m->fingers;
-		m->ybar = caps->abs_position_y.maximum;
+		m->ybar = caps->abs[BIT_POSITION_Y].maximum;
 		return;
 	}
 
@@ -107,9 +111,9 @@ static void update_pointers(struct Memory *m,
 	}
 
 	m->pointing = 0;
-	m->ybar = caps->yclick;
+	m->ybar = yclick;
 	foreach_bit(i, m->fingers) {
-		if (f[i].hw.position_y > caps->yclick)
+		if (f[i].hw.position_y > yclick)
 			continue;
 		if (!m->pointing || f[i].hw.position_y > m->ybar)
 			m->ybar = f[i].hw.position_y;

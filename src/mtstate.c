@@ -22,7 +22,7 @@
 #include "mtstate.h"
 
 #define TOUCH_WIDTH(hw) (0.05 * hw->width_major)
-#define TOUCH_SCALE(caps) (0.05 * caps->abs_touch_major.maximum)
+#define TOUCH_SCALE(caps) (0.05 * caps->abs[BIT_TOUCH_MAJOR].maximum)
 
 #define THUMB_TOUCH(hw) (1.2 * hw->touch_minor)
 #define THUMB_WIDTH_TOUCH(hw) (3 * hw->touch_major)
@@ -37,9 +37,9 @@ void init_mtstate(struct MTState *s)
 static int touching_finger(const struct FingerData *hw,
 			   const struct Capabilities *caps)
 {
-	if (caps->has_touch_major && caps->has_width_major)
+	if (caps->has_abs[BIT_TOUCH_MAJOR] && caps->has_abs[BIT_WIDTH_MAJOR])
 		return hw->touch_major > TOUCH_WIDTH(hw);
-	if (caps->has_touch_major)
+	if (caps->has_abs[BIT_TOUCH_MAJOR])
 		return hw->touch_major > TOUCH_SCALE(caps);
 	return 1;
 }
@@ -55,8 +55,10 @@ static int touching_finger(const struct FingerData *hw,
 static int thumb_finger(const struct FingerData *hw,
 			const struct Capabilities *caps)
 {
-	if (!caps->has_touch_major || !caps->has_touch_minor ||
-	    !caps->has_width_major || !caps->has_width_minor)
+	if (!caps->has_abs[BIT_TOUCH_MAJOR] ||
+	    !caps->has_abs[BIT_TOUCH_MINOR] ||
+	    !caps->has_abs[BIT_WIDTH_MAJOR] ||
+	    !caps->has_abs[BIT_WIDTH_MINOR])
 		return 0;
 	return	hw->touch_major > THUMB_TOUCH(hw) &&
 		hw->width_major > THUMB_WIDTH_TOUCH(hw) &&

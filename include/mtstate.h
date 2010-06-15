@@ -54,8 +54,7 @@ static inline int center_dist2(const struct MTFinger *a,
 
 static inline int center_maxdist2(const struct Capabilities *caps)
 {
-	return dist2(caps->abs_position_x.maximum - get_cap_xmid(caps),
-		     caps->abs_position_y.maximum - get_cap_ymid(caps));
+	return dist2(get_cap_xsize(caps) / 2, get_cap_ysize(caps) / 2);
 }
 
 #endif

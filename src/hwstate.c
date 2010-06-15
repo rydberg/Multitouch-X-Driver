@@ -21,7 +21,7 @@
 
 #include "hwstate.h"
 
-#define NOTOUCH(hw, c) ((hw)->touch_major == 0 && (c)->has_touch_major)
+#define NOTOUCH(hw, c) ((hw)->touch_major == 0 && (c)->has_abs[BIT_TOUCH_MAJOR])
 
 void init_hwstate(struct HWState *s)
 {
@@ -49,12 +49,12 @@ static void set_finger(struct FingerState *fs,
 		       const struct FingerData *hw, int id,
 		       const struct Capabilities *caps)
 {
-	int x = defuzz(hw->position_x, fs->hw.position_x, caps->xfuzz);
-	int y = defuzz(hw->position_y, fs->hw.position_y, caps->yfuzz);
-	int tj = defuzz(hw->touch_major, fs->hw.touch_major, caps->wfuzz);
-	int tn = defuzz(hw->touch_minor, fs->hw.touch_minor, caps->wfuzz);
-	int wj = defuzz(hw->width_major, fs->hw.width_major, caps->wfuzz);
-	int wn = defuzz(hw->width_minor, fs->hw.width_minor, caps->wfuzz);
+	int x = defuzz(hw->position_x, fs->hw.position_x, caps->abs[BIT_POSITION_X].fuzz);
+	int y = defuzz(hw->position_y, fs->hw.position_y, caps->abs[BIT_POSITION_Y].fuzz);
+	int tj = defuzz(hw->touch_major, fs->hw.touch_major, caps->abs[BIT_TOUCH_MAJOR].fuzz);
+	int tn = defuzz(hw->touch_minor, fs->hw.touch_minor, caps->abs[BIT_TOUCH_MAJOR].fuzz);
+	int wj = defuzz(hw->width_major, fs->hw.width_major, caps->abs[BIT_TOUCH_MAJOR].fuzz);
+	int wn = defuzz(hw->width_minor, fs->hw.width_minor, caps->abs[BIT_TOUCH_MAJOR].fuzz);
 	fs->id = id;
 	fs->hw = *hw;
 	fs->hw.position_x = x;
@@ -65,9 +65,9 @@ static void set_finger(struct FingerState *fs,
 	}
 	fs->hw.width_major = wj;
 	fs->hw.width_minor = wn;
-	if (!caps->has_touch_minor)
+	if (!caps->has_abs[BIT_TOUCH_MINOR])
 		fs->hw.touch_minor = hw->touch_major;
-	if (!caps->has_width_minor)
+	if (!caps->has_abs[BIT_WIDTH_MINOR])
 		fs->hw.width_minor = hw->width_major;
 }
 

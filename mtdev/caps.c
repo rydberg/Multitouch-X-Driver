@@ -19,17 +19,17 @@
  *
  **************************************************************************/
 
-#include <mtdev-caps.h>
+#include "mtdev-caps.h"
+#include "mtbit.h"
 
 #define SETABS(c, x, map, key, fd)					\
-	(c->has_##x = getbit(map, key) && getabs(&c->abs_##x, key, fd))
+	(c->has_##x = getbit(map, key) && getabs(&c->x, key, fd))
 
 #define ADDCAP(s, c, x) strcat(s, c->has_##x ? " " #x : "")
 
-#define CLICK_AREA(c) ((c->has_ibt ? 0.20 : 0.00) * get_cap_ysize(c))
-
 static const int SN_COORD = 250;	/* coordinate signal-to-noise ratio */
 static const int SN_WIDTH = 100;	/* width signal-to-noise ratio */
+static const int SN_ORIENT = 10;	/* orientation signal-to-noise ratio */
 
 static const int bits_per_long = 8 * sizeof(long);
 
@@ -50,6 +50,11 @@ static int getabs(struct input_absinfo *abs, int key, int fd)
 	return rc >= 0;
 }
 
+static int has_mt_data(const struct Capabilities *cap)
+{
+	return cap->has_abs[BIT_POSITION_X] && cap->has_abs[BIT_POSITION_Y];
+}
+
 static int has_integrated_button(const struct Capabilities *cap)
 {
 	static const int bcm5974_vmask_ibt = 1;
@@ -58,12 +63,20 @@ static int has_integrated_button(const struct Capabilities *cap)
 	return cap->devid.version & bcm5974_vmask_ibt;
 }
 
+static void default_fuzz(struct Capabilities *cap, unsigned int code, int sn)
+{
+	int bit = abs2mt(code);
+	if (cap->has_abs[bit] && cap->abs[bit].fuzz == 0)
+		cap->abs[bit].fuzz =
+			(cap->abs[bit].maximum - cap->abs[bit].minimum) / sn;
+}
+
 int read_capabilities(struct Capabilities *cap, int fd)
 {
 	unsigned long evbits[nlongs(EV_MAX)];
 	unsigned long absbits[nlongs(ABS_MAX)];
 	unsigned long keybits[nlongs(KEY_MAX)];
-	int rc;
+	int rc, i;
 
 	memset(cap, 0, sizeof(struct Capabilities));
 
@@ -87,95 +100,76 @@ int read_capabilities(struct Capabilities *cap, int fd)
 	cap->has_middle = getbit(keybits, BTN_MIDDLE);
 	cap->has_right = getbit(keybits, BTN_RIGHT);
 
-	SETABS(cap, touch_major, absbits, ABS_MT_TOUCH_MAJOR, fd);
-	SETABS(cap, touch_minor, absbits, ABS_MT_TOUCH_MINOR, fd);
-	SETABS(cap, width_major, absbits, ABS_MT_WIDTH_MAJOR, fd);
-	SETABS(cap, width_minor, absbits, ABS_MT_WIDTH_MINOR, fd);
-	SETABS(cap, orientation, absbits, ABS_MT_ORIENTATION, fd);
-	SETABS(cap, position_x, absbits, ABS_MT_POSITION_X, fd);
-	SETABS(cap, position_y, absbits, ABS_MT_POSITION_Y, fd);
+	SETABS(cap, slot, absbits, ABS_MT_SLOT, fd);
+	for (i = 0; i < MT_ABS_SIZE; i++)
+		SETABS(cap, abs[i], absbits, mt2abs(i), fd);
 
-	cap->has_mtdata = cap->has_position_x && cap->has_position_y;
+	cap->has_mtdata = has_mt_data(cap);
 	cap->has_ibt = has_integrated_button(cap);
 
-	cap->xfuzz = cap->abs_position_x.fuzz;
-	cap->yfuzz = cap->abs_position_y.fuzz;
-	if (cap->xfuzz <= 0 || cap->yfuzz <= 0) {
-		cap->xfuzz = get_cap_xsize(cap) / SN_COORD;
-		cap->yfuzz = get_cap_ysize(cap) / SN_COORD;
-	}
-	cap->wfuzz = cap->abs_touch_major.fuzz;
-	if (cap->wfuzz <= 0)
-		cap->wfuzz = get_cap_wsize(cap) / SN_WIDTH;
+	if (cap->has_abs[BIT_TRACKING_ID])
+		cap->nullid = cap->abs[BIT_TRACKING_ID].minimum - 1;
 
-	cap->yclick = cap->abs_position_y.maximum - CLICK_AREA(cap);
+	default_fuzz(cap, ABS_MT_POSITION_X, SN_COORD);
+	default_fuzz(cap, ABS_MT_POSITION_Y, SN_COORD);
+	default_fuzz(cap, ABS_MT_TOUCH_MAJOR, SN_WIDTH);
+	default_fuzz(cap, ABS_MT_TOUCH_MINOR, SN_WIDTH);
+	default_fuzz(cap, ABS_MT_WIDTH_MAJOR, SN_WIDTH);
+	default_fuzz(cap, ABS_MT_WIDTH_MINOR, SN_WIDTH);
+	default_fuzz(cap, ABS_MT_ORIENTATION, SN_ORIENT);
 
 	return 0;
 }
 
 int get_cap_xsize(const struct Capabilities *cap)
 {
-	return cap->abs_position_x.maximum - cap->abs_position_x.minimum;
+	const struct input_absinfo *x = &cap->abs[BIT_POSITION_X];
+	return x->maximum - x->minimum;
 }
 
 int get_cap_ysize(const struct Capabilities *cap)
 {
-	return cap->abs_position_y.maximum - cap->abs_position_y.minimum;
+	const struct input_absinfo *y = &cap->abs[BIT_POSITION_Y];
+	return y->maximum - y->minimum;
 }
 
 int get_cap_wsize(const struct Capabilities *cap)
 {
-	return cap->abs_touch_major.maximum - cap->abs_touch_major.minimum;
+	const struct input_absinfo *w = &cap->abs[BIT_TOUCH_MAJOR];
+	return w->maximum - w->minimum;
 }
 
 int get_cap_xmid(const struct Capabilities *cap)
 {
-	return (cap->abs_position_x.maximum + cap->abs_position_x.minimum) >> 1;
+	const struct input_absinfo *x = &cap->abs[BIT_POSITION_X];
+	return (x->maximum + x->minimum) >> 1;
 }
 
 int get_cap_ymid(const struct Capabilities *cap)
 {
-	return (cap->abs_position_y.maximum + cap->abs_position_y.minimum) >> 1;
+	const struct input_absinfo *y = &cap->abs[BIT_POSITION_Y];
+	return (y->maximum + y->minimum) >> 1;
 }
 
 void output_capabilities(const struct Capabilities *cap)
 {
 	char line[1024];
+	int i;
 	memset(line, 0, sizeof(line));
 	ADDCAP(line, cap, left);
 	ADDCAP(line, cap, middle);
 	ADDCAP(line, cap, right);
 	ADDCAP(line, cap, mtdata);
 	ADDCAP(line, cap, ibt);
-	ADDCAP(line, cap, touch_major);
-	ADDCAP(line, cap, touch_minor);
-	ADDCAP(line, cap, width_major);
-	ADDCAP(line, cap, width_minor);
-	ADDCAP(line, cap, orientation);
-	ADDCAP(line, cap, position_x);
-	ADDCAP(line, cap, position_y);
 	xf86Msg(X_INFO, "multitouch: devname: %s\n", cap->devname);
 	xf86Msg(X_INFO, "multitouch: devid: %x %x %x\n",
 		cap->devid.vendor, cap->devid.product, cap->devid.version);
 	xf86Msg(X_INFO, "multitouch: caps:%s\n", line);
-	if (cap->has_touch_major)
-		xf86Msg(X_INFO, "multitouch: touch: %d %d\n",
-			cap->abs_touch_major.minimum,
-			cap->abs_touch_major.maximum);
-	if (cap->has_width_major)
-		xf86Msg(X_INFO, "multitouch: width: %d %d\n",
-			cap->abs_width_major.minimum,
-			cap->abs_width_major.maximum);
-	if (cap->has_orientation)
-		xf86Msg(X_INFO, "multitouch: orientation: %d %d\n",
-			cap->abs_orientation.minimum,
-			cap->abs_orientation.maximum);
-	if (cap->has_position_x)
-		xf86Msg(X_INFO, "multitouch: position_x: %d %d\n",
-			cap->abs_position_x.minimum,
-			cap->abs_position_x.maximum);
-	if (cap->has_position_y)
-		xf86Msg(X_INFO, "multitouch: position_y: %d %d\n",
-			cap->abs_position_y.minimum,
-			cap->abs_position_y.maximum);
+	for (i = 0; i < MT_ABS_SIZE; i++) {
+		if (cap->has_abs[i])
+			xf86Msg(X_INFO, "multitouch: %d: min: %d max: %d\n",
+				i,
+				cap->abs[i].minimum,
+				cap->abs[i].maximum);
+	}
 }

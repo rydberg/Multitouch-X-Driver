@@ -23,25 +23,18 @@
 #define MTDEV_CAPS_H
 
 #include "common.h"
+#include "abs2mt.h"
+#include "mtbit.h"
 
 struct Capabilities {
 	struct input_id devid;
 	char devname[32];
-	int has_left, has_middle;
-	int has_right, has_mtdata, has_ibt;
-	int has_touch_major, has_touch_minor;
-	int has_width_major, has_width_minor;
-	int has_orientation, has_dummy;
-	int has_position_x, has_position_y;
-	struct input_absinfo abs_touch_major;
-	struct input_absinfo abs_touch_minor;
-	struct input_absinfo abs_width_major;
-	struct input_absinfo abs_width_minor;
-	struct input_absinfo abs_orientation;
-	struct input_absinfo abs_position_x;
-	struct input_absinfo abs_position_y;
-	int xfuzz, yfuzz, wfuzz;
-	int yclick;
+	int has_left, has_middle, has_right;
+	int has_mtdata, has_ibt;
+	int has_slot, nullid;
+	int has_abs[MT_ABS_SIZE];
+	struct input_absinfo slot;
+	struct input_absinfo abs[MT_ABS_SIZE];
 };
 
 int read_capabilities(struct Capabilities *cap, int fd);

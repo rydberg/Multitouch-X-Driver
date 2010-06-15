@@ -141,16 +141,16 @@ static int device_init(DeviceIntPtr dev, LocalDevicePtr local)
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 				   axes_labels[0],
 #endif
-				   mt->caps.abs_position_x.minimum,
-				   mt->caps.abs_position_x.maximum,
+				   mt->caps.abs[BIT_POSITION_X].minimum,
+				   mt->caps.abs[BIT_POSITION_X].maximum,
 				   1, 0, 1);
 	xf86InitValuatorDefaults(dev, 0);
 	xf86InitValuatorAxisStruct(dev, 1,
 #if GET_ABI_MAJOR(ABI_XINPUT_VERSION) >= 7
 				   axes_labels[1],
 #endif
-				   mt->caps.abs_position_y.minimum,
-				   mt->caps.abs_position_y.maximum,
+				   mt->caps.abs[BIT_POSITION_Y].minimum,
+				   mt->caps.abs[BIT_POSITION_Y].maximum,
 				   1, 0, 1);
 	xf86InitValuatorDefaults(dev, 1);
 
