@@ -16,6 +16,7 @@ o_src	= hwstate mtstate memory mtouch gestures
 o_driver= multitouch
 
 TARGETS	+= match/test
+TARGETS	+= mtdev/mapgen
 TARGETS	+= src/test
 
 OBJECTS	= $(addsuffix .o,\
