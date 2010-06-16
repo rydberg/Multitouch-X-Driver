@@ -44,12 +44,12 @@ static inline int mtdev_empty(struct MTDev *mtdev)
 	return evbuf_empty(&mtdev->outbuf);
 }
 
-void mtdev_push(struct MTDev *dev, const struct Capabilities *caps,
-		const struct input_event *ev);
+void mtdev_put(struct MTDev *dev, const struct Capabilities *caps,
+	       const struct input_event *ev);
 
-static inline void mtdev_pop(struct MTDev *mtdev, struct input_event* ev)
+static inline void mtdev_get(struct MTDev *mtdev, struct input_event* ev)
 {
-	evbuf_pop(&mtdev->outbuf, ev);
+	evbuf_get(&mtdev->outbuf, ev);
 }
 
 void mtdev_destroy(struct MTDev *mtdev);

@@ -40,14 +40,14 @@ static inline int evbuf_empty(const struct EventBuffer *evbuf)
 	return evbuf->head == evbuf->tail;
 }
 
-static inline void evbuf_push(struct EventBuffer *evbuf,
-			      const struct input_event *ev)
+static inline void evbuf_put(struct EventBuffer *evbuf,
+			     const struct input_event *ev)
 {
 	evbuf->buffer[evbuf->head++] = *ev;
 	evbuf->head &= DIM_EVENTS - 1;
 }
 
-static inline void evbuf_pop(struct EventBuffer *evbuf,
+static inline void evbuf_get(struct EventBuffer *evbuf,
 			     struct input_event *ev)
 {
 	*ev = evbuf->buffer[evbuf->tail++];

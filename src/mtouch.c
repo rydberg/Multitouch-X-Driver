@@ -60,7 +60,7 @@ int close_mtouch(struct MTouch *mt, int fd)
 
 int parse_event(struct MTouch *mt, const struct input_event *ev)
 {
-	mtdev_push(&mt->dev, &mt->caps, ev);
+	mtdev_put(&mt->dev, &mt->caps, ev);
 	if (!modify_hwstate(&mt->hs, &mt->dev, &mt->caps))
 		return 0;
 	extract_mtstate(&mt->state, &mt->hs, &mt->caps);

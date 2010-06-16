@@ -181,7 +181,7 @@ static int process_typeA(struct MTDev *dev,
 	int mtcnt = 0, size = 0;
 	prop[size] = 0;
 	while (!evbuf_empty(&dev->inbuf)) {
-		evbuf_pop(&dev->inbuf, &ev);
+		evbuf_get(&dev->inbuf, &ev);
 		consumed = 0;
 		switch (ev.type) {
 		case EV_SYN:
@@ -216,7 +216,7 @@ static int process_typeA(struct MTDev *dev,
 			break;
 		}
 		if (!consumed)
-			evbuf_push(&dev->outbuf, &ev);
+			evbuf_put(&dev->outbuf, &ev);
 	}
 	return mtcnt ? size : -1;
 }
@@ -232,8 +232,8 @@ static void process_typeB(struct MTDev *dev)
 {
 	struct input_event ev;
 	while (!evbuf_empty(&dev->inbuf)) {
-		evbuf_pop(&dev->inbuf, &ev);
-		evbuf_push(&dev->outbuf, &ev);
+		evbuf_get(&dev->inbuf, &ev);
+		evbuf_put(&dev->outbuf, &ev);
 	}
 }
 
@@ -283,14 +283,14 @@ static void push_slot_changes(struct MTDev *dev,
 	ev.code = ABS_MT_SLOT;
 	ev.value = slot;
 	if (priv->slot != ev.value) {
-		evbuf_push(&dev->outbuf, &ev);
+		evbuf_put(&dev->outbuf, &ev);
 		priv->slot = ev.value;
 	}
 	foreach_bit(i, prop) {
 		ev.code = mt2abs(i);
 		ev.value = data->abs[i];
 		if (priv->data[slot].abs[i] != ev.value) {
-			evbuf_push(&dev->outbuf, &ev);
+			evbuf_put(&dev->outbuf, &ev);
 			priv->data[slot].abs[i] = ev.value;
 		}
 	}
@@ -369,14 +369,14 @@ static void convert_A_to_B(struct MTDev *dev,
 }
 
 /**
- * mtdev_push - insert event into MT device
+ * mtdev_put - insert event into MT device
  * @dev: MT device
  * @caps: device capabilities
  * @syn: reference to the SYN_REPORT event
  */
-void mtdev_push(struct MTDev *dev,
-		const struct Capabilities *caps,
-		const struct input_event *ev)
+void mtdev_put(struct MTDev *dev,
+	       const struct Capabilities *caps,
+	       const struct input_event *ev)
 {
 	if (ev->type == EV_SYN && ev->code == SYN_REPORT) {
 		bitmask_t head = dev->outbuf.head;
@@ -385,9 +385,9 @@ void mtdev_push(struct MTDev *dev,
 		else
 			process_typeB(dev);
 		if (dev->outbuf.head != head)
-			evbuf_push(&dev->outbuf, ev);
+			evbuf_put(&dev->outbuf, ev);
 	} else {
-		evbuf_push(&dev->inbuf, ev);
+		evbuf_put(&dev->inbuf, ev);
 	}
 }
 

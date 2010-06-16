@@ -53,9 +53,9 @@ static void loop_device(int fd)
 	}
 	init_iobuf(&iobuf);
 	while (ev = get_iobuf_event(&iobuf, fd)) {
-		mtdev_push(&mtdev, &caps, ev);
+		mtdev_put(&mtdev, &caps, ev);
 		while (!mtdev_empty(&mtdev)) {
-			mtdev_pop(&mtdev, &event);
+			mtdev_get(&mtdev, &event);
 			print_event(&event);
 		}
 	}
