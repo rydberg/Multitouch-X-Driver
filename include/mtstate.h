@@ -24,14 +24,10 @@
 
 #include "hwstate.h"
 
-struct MTFinger {
-	struct FingerData hw;
-	int id, thumb;
-};
-
 struct MTState {
-	struct MTFinger finger[DIM_FINGER];
+	struct FingerState finger[DIM_FINGER];
 	int nfinger;
+	bitmask_t thumb;
 	bitmask_t button;
 	mstime_t evtime;
 };
@@ -42,14 +38,14 @@ void extract_mtstate(struct MTState *s,
 		     const struct Capabilities *caps);
 void output_mtstate(const struct MTState *s);
 
-const struct MTFinger *find_finger(const struct MTState *s, int id);
+const struct FingerState *find_finger(const struct MTState *s, int id);
 
 
-static inline int center_dist2(const struct MTFinger *a,
+static inline int center_dist2(const struct FingerState *a,
 			       const struct Capabilities *caps)
 {
-	return dist2(a->hw.position_x - get_cap_xmid(caps),
-		     a->hw.position_y - get_cap_ymid(caps));
+	return dist2(a->position_x - get_cap_xmid(caps),
+		     a->position_y - get_cap_ymid(caps));
 }
 
 static inline int center_maxdist2(const struct Capabilities *caps)

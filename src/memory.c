@@ -32,13 +32,15 @@ static const int FINGER_ATTACK_MS = 40;
 static const int FINGER_DECAY_MS = 120;
 static const int FINGER_CORNER_MS = 150;
 
-static inline int dxval(const struct MTFinger *a, const struct MTFinger *b)
+static inline int dxval(const struct FingerState *a,
+			const struct FingerState *b)
 {
-	return a->hw.position_x - b->hw.position_x;
+	return a->position_x - b->position_x;
 }
-static inline int dyval(const struct MTFinger *a, const struct MTFinger *b)
+static inline int dyval(const struct FingerState *a,
+			const struct FingerState *b)
 {
-	return a->hw.position_y - b->hw.position_y;
+	return a->position_y - b->position_y;
 }
 
 void init_memory(struct Memory *mem)
@@ -60,20 +62,18 @@ static void update_configuration(struct Memory *m,
 				 const struct MTState *prev_state,
 				 const struct MTState *state)
 {
-	const struct MTFinger *f = state->finger;
+	const struct FingerState *f = state->finger;
 	bitmask_t fingers = BITONES(state->nfinger);
 	int i;
 	m->added = 0;
 	foreach_bit(i, fingers)
-		if (!find_finger(prev_state, f[i].id))
+		if (!find_finger(prev_state, f[i].tracking_id))
 			SETBIT(m->added, i);
 	m->same = m->fingers == fingers && m->added == 0;
 	m->fingers = fingers;
 	if (!m->same)
 		m->thumb = 0;
-	foreach_bit(i, fingers)
-		if (f[i].thumb)
-			SETBIT(m->thumb, i);
+	m->thumb |= state->thumb;
 }
 
 /**
@@ -90,8 +90,9 @@ static void update_pointers(struct Memory *m,
 			    const struct MTState *state,
 			    const struct Capabilities *caps)
 {
-	const struct MTFinger *f = state->finger;
+	const struct FingerState *f = state->finger;
 	int yclick = caps->abs[BIT_POSITION_Y].maximum - CLICK_AREA(caps);
+
 	int i;
 
 	if (state->nfinger < 2) {
@@ -102,7 +103,7 @@ static void update_pointers(struct Memory *m,
 
 	if (m->same) {
 		foreach_bit(i, m->fingers & ~m->pointing) {
-			if (f[i].hw.position_y <= m->ybar) {
+			if (f[i].position_y <= m->ybar) {
 				m->pointing = m->fingers;
 				return;
 			}
@@ -113,10 +114,10 @@ static void update_pointers(struct Memory *m,
 	m->pointing = 0;
 	m->ybar = yclick;
 	foreach_bit(i, m->fingers) {
-		if (f[i].hw.position_y > yclick)
+		if (f[i].position_y > yclick)
 			continue;
-		if (!m->pointing || f[i].hw.position_y > m->ybar)
-			m->ybar = f[i].hw.position_y;
+		if (!m->pointing || f[i].position_y > m->ybar)
+			m->ybar = f[i].position_y;
 		SETBIT(m->pointing, i);
 	}
 
@@ -140,7 +141,7 @@ static void update_movement(struct Memory *m,
 			    const struct MTState *state,
 			    const struct Capabilities *caps)
 {
-	const struct MTFinger *prev, *f = state->finger;
+	const struct FingerState *prev, *f = state->finger;
 	int i, xcut, ycut, xmax = 0, ymax = 0;
 
 	m->moving = 0;
@@ -167,7 +168,7 @@ static void update_movement(struct Memory *m,
 
 	foreach_bit(i, m->pointing) {
 		int dx, dy;
-		prev = find_finger(prev_state, f[i].id);
+		prev = find_finger(prev_state, f[i].tracking_id);
 		dx = dxval(&f[i], prev);
 		dy = dyval(&f[i], prev);
 		m->dx[i] += dx;

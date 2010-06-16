@@ -34,7 +34,7 @@ void init_mtstate(struct MTState *s)
 	memset(s, 0, sizeof(struct MTState));
 }
 
-static int touching_finger(const struct FingerData *hw,
+static int touching_finger(const struct FingerState *hw,
 			   const struct Capabilities *caps)
 {
 	if (caps->has_abs[BIT_TOUCH_MAJOR] && caps->has_abs[BIT_WIDTH_MAJOR])
@@ -52,8 +52,8 @@ static int touching_finger(const struct FingerData *hw,
  * by all three values touch_major, width_minor, and trackpad size.
  *
  */
-static int thumb_finger(const struct FingerData *hw,
-			const struct Capabilities *caps)
+static int is_thumb(const struct FingerState *hw,
+		    const struct Capabilities *caps)
 {
 	if (!caps->has_abs[BIT_TOUCH_MAJOR] ||
 	    !caps->has_abs[BIT_TOUCH_MINOR] ||
@@ -66,26 +66,17 @@ static int thumb_finger(const struct FingerData *hw,
 		hw->width_major > THUMB_WIDTH_SIZE(hw, caps);
 }
 
-static int set_finger(struct MTFinger *f,
-		      const struct FingerState *fs,
-		      const struct Capabilities *caps)
-{
-	f->hw = fs->hw;
-	f->id = fs->id;
-	f->thumb = thumb_finger(&fs->hw, caps);
-}
-
 void extract_mtstate(struct MTState *s,
 		     const struct HWState *hs,
 		     const struct Capabilities *caps)
 {
 	int i;
-
 	s->nfinger = 0;
-	for (i = 0; i < hs->nfinger; i++) {
-		if (!touching_finger(&hs->finger[i].hw, caps))
+	foreach_bit(i, hs->used) {
+		if (!touching_finger(&hs->data[i], caps))
 			continue;
-		set_finger(&s->finger[s->nfinger], &hs->finger[i], caps);
+		s->finger[s->nfinger] = hs->data[i];
+		MODBIT(s->thumb, s->nfinger, is_thumb(&hs->data[i], caps));
 		s->nfinger++;
 	}
 
@@ -93,12 +84,12 @@ void extract_mtstate(struct MTState *s,
 	s->evtime = hs->evtime;
 }
 
-const struct MTFinger *find_finger(const struct MTState *s, int id)
+const struct FingerState *find_finger(const struct MTState *s, int id)
 {
 	int i;
 
 	for (i = 0; i < s->nfinger; i++)
-		if (s->finger[i].id == id)
+		if (s->finger[i].tracking_id == id)
 			return s->finger + i;
 
 	return NULL;
@@ -119,14 +110,14 @@ void output_mtstate(const struct MTState *s)
 		xf86Msg(X_INFO,
 			"  %+02d %+05d:%+05d +%05d:%+05d "
 			"%+06d %+06d %+05d:%+05d\n",
-			s->finger[i].id,
-			s->finger[i].hw.touch_major,
-			s->finger[i].hw.touch_minor,
-			s->finger[i].hw.width_major,
-			s->finger[i].hw.width_minor,
-			s->finger[i].hw.orientation,
-			s->finger[i].hw.pressure,
-			s->finger[i].hw.position_x,
-			s->finger[i].hw.position_y);
+			s->finger[i].tracking_id,
+			s->finger[i].touch_major,
+			s->finger[i].touch_minor,
+			s->finger[i].width_major,
+			s->finger[i].width_minor,
+			s->finger[i].orientation,
+			s->finger[i].pressure,
+			s->finger[i].position_x,
+			s->finger[i].position_y);
 	}
 }

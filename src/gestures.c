@@ -81,8 +81,8 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 		return;
 
 	foreach_bit(i, mt->mem.moving) {
-		xp[i] = mt->state.finger[i].hw.position_x - xpos;
-		yp[i] = mt->state.finger[i].hw.position_y - ypos;
+		xp[i] = mt->state.finger[i].position_x - xpos;
+		yp[i] = mt->state.finger[i].position_y - ypos;
 		xm[i] = mt->mem.dx[i];
 		ym[i] = mt->mem.dy[i];
 		mt->mem.dx[i] = 0;
@@ -178,3 +178,25 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 	mt->prev_state = mt->state;
 }
 
+
+void output_gesture(const struct Gestures *gs)
+{
+	int i;
+	foreach_bit(i, gs->btmask)
+		xf86Msg(X_INFO, "button bit: %d %d\n",
+			i, GETBIT(gs->btdata, i));
+	if (GETBIT(gs->type, GS_MOVE))
+		xf86Msg(X_INFO, "motion: %d %d\n", gs->dx, gs->dy);
+	if (GETBIT(gs->type, GS_VSCROLL))
+		xf86Msg(X_INFO, "vscroll: %d\n", gs->dy);
+	if (GETBIT(gs->type, GS_HSCROLL))
+		xf86Msg(X_INFO, "hscroll: %d\n", gs->dx);
+	if (GETBIT(gs->type, GS_VSWIPE))
+		xf86Msg(X_INFO, "vswipe: %d\n", gs->dy);
+	if (GETBIT(gs->type, GS_HSWIPE))
+		xf86Msg(X_INFO, "hswipe: %d\n", gs->dx);
+	if (GETBIT(gs->type, GS_SCALE))
+		xf86Msg(X_INFO, "scale: %d\n", gs->scale);
+	if (GETBIT(gs->type, GS_ROTATE))
+		xf86Msg(X_INFO, "rotate: %d\n", gs->rot);
+}

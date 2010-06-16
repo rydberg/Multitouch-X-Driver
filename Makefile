@@ -9,7 +9,7 @@ XMODULES = driver
 
 o_match	= match
 
-o_mtdev	= iobuf caps core hwdata
+o_mtdev	= iobuf caps core
 
 o_src	= hwstate mtstate memory mtouch gestures
 

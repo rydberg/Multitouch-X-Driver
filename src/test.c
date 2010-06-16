@@ -19,24 +19,45 @@
  *
  **************************************************************************/
 
-#include <common.h>
+#include <gestures.h>
+#include <fcntl.h>
 #include <xbypass.h>
-#include <stdio.h>
-#include <time.h>
 
-static void print_bitfield(unsigned m)
+static void loop_device(int fd)
 {
-	int i;
-
-	printf("%d\n", m);
-	foreach_bit(i, m)
-		printf("%d %d\n", i, 1 << i);
+	struct Gestures gs;
+	struct MTouch mt;
+	const struct input_event *ev;
+	struct input_event event;
+	if (configure_mtouch(&mt, fd)) {
+		fprintf(stderr, "error: could not configure device\n");
+		return;
+	}
+	if (open_mtouch(&mt, fd)) {
+		fprintf(stderr, "error: could not open device\n");
+		return;
+	}
+	while (ev = get_iobuf_event(&mt.buf, fd)) {
+		if (parse_event(&mt, ev)) {
+			extract_gestures(&gs, &mt);
+			output_gesture(&gs);
+		}
+	}
+	close_mtouch(&mt, fd);
 }
 
 int main(int argc, char *argv[])
 {
-	print_bitfield(5);
-	print_bitfield(126);
-	print_bitfield(0);
+	if (argc < 2) {
+		fprintf(stderr, "Usage: test <mtdev>\n");
+		return -1;
+	}
+	int fd = open(argv[1], O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr, "error: could not open file\n");
+		return -1;
+	}
+	loop_device(fd);
+	close(fd);
 	return 0;
 }

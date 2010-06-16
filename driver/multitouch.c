@@ -273,10 +273,12 @@ static void read_input(LocalDevicePtr local)
 {
 	struct Gestures gs;
 	struct MTouch *mt = local->private;
-	while (read_synchronized_event(mt, local->fd)) {
-		parse_event(mt);
-		extract_gestures(&gs, mt);
-		handle_gestures(local, &gs, &mt->caps);
+	const struct input_event *ev;
+	while (ev = get_iobuf_event(&mt->buf, local->fd)) {
+		if (parse_event(mt, ev)) {
+			extract_gestures(&gs, mt);
+			handle_gestures(local, &gs, &mt->caps);
+		}
 	}
 }
 

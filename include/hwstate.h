@@ -22,26 +22,35 @@
 #ifndef HWSTATE_H
 #define HWSTATE_H
 
-#include "mtdev-caps.h"
-#include "hwdata.h"
+#include "mtdev.h"
 
-/* zero id means not mapped (not touching) */
 struct FingerState {
-	struct FingerData hw;
-	int id;
+	int touch_major, touch_minor;
+	int width_major, width_minor;
+	int orientation, pressure;
+	int position_x, position_y;
+	int tracking_id;
 };
 
 struct HWState {
-	struct FingerState finger[DIM_FINGER];
+	struct FingerState data[DIM_FINGER];
+	bitmask_t used;
+	bitmask_t slot;
 	bitmask_t button;
-	int nfinger;
 	mstime_t evtime;
-	int lastid;
 };
 
-void init_hwstate(struct HWState *s);
-void modify_hwstate(struct HWState *s,
-		    const struct HWData *hw,
-		    const struct Capabilities *caps);
+void init_hwstate(struct HWState *s,
+		  const struct Capabilities *caps);
+int modify_hwstate(struct HWState *s, struct MTDev *dev,
+		   const struct Capabilities *caps);
+void output_hwstate(const struct HWState *s);
+
+static inline int finger_dist2(const struct FingerState *a,
+			       const struct FingerState *b)
+{
+	return dist2(a->position_x - b->position_x,
+		     a->position_y - b->position_y);
+}
 
 #endif

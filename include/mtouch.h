@@ -22,16 +22,13 @@
 #ifndef MTOUCH_H
 #define MTOUCH_H
 
-#include "mtdev-iobuf.h"
-#include "hwdata.h"
-#include "hwstate.h"
-#include "mtstate.h"
 #include "memory.h"
+#include "mtdev-iobuf.h"
 
 struct MTouch {
 	struct Capabilities caps;
+	struct MTDev dev;
 	struct IOBuffer buf;
-	struct HWData hw;
 	struct HWState hs;
 	struct MTState prev_state, state;
 	struct Memory mem;
@@ -41,9 +38,7 @@ int configure_mtouch(struct MTouch *mt, int fd);
 int open_mtouch(struct MTouch *mt, int fd);
 int close_mtouch(struct MTouch *mt, int fd);
 
-int read_synchronized_event(struct MTouch *mt, int fd);
-void parse_event(struct MTouch *mt);
-
+int parse_event(struct MTouch *mt, const struct input_event *ev);
 
 static inline void mt_delay_movement(struct MTouch *mt, int t)
 {

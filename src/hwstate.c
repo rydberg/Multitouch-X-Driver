@@ -21,91 +21,101 @@
 
 #include "hwstate.h"
 
-#define NOTOUCH(hw, c) ((hw)->touch_major == 0 && (c)->has_abs[BIT_TOUCH_MAJOR])
-
-void init_hwstate(struct HWState *s)
+void init_hwstate(struct HWState *s, const struct Capabilities *caps)
 {
+	int i;
 	memset(s, 0, sizeof(struct HWState));
+	for (i = 0; i < DIM_FINGER; i++)
+		s->data[i].tracking_id = caps->nullid;
 }
 
-/* Dmitry Torokhov's code from kernel/driver/input/input.c */
-static int defuzz(int value, int old_val, int fuzz)
+static void finish_packet(struct HWState *s, const struct Capabilities *caps,
+			  const struct input_event *syn)
 {
-	if (fuzz) {
-		if (value > old_val - fuzz / 2 && value < old_val + fuzz / 2)
-			return old_val;
-
-		if (value > old_val - fuzz && value < old_val + fuzz)
-			return (old_val * 3 + value) / 4;
-
-		if (value > old_val - fuzz * 2 && value < old_val + fuzz * 2)
-			return (old_val + value) / 2;
+	static const mstime_t ms = 1000;
+	int i;
+	foreach_bit(i, s->used) {
+		if (!caps->has_abs[BIT_TOUCH_MINOR])
+			s->data[i].touch_minor = s->data[i].touch_major;
+		if (!caps->has_abs[BIT_WIDTH_MINOR])
+			s->data[i].width_minor = s->data[i].width_major;
 	}
-
-	return value;
+	s->evtime = syn->time.tv_usec / ms + syn->time.tv_sec * ms;
 }
 
-static void set_finger(struct FingerState *fs,
-		       const struct FingerData *hw, int id,
-		       const struct Capabilities *caps)
+static int read_event(struct HWState *s, const struct Capabilities *caps,
+		      const struct input_event *ev)
 {
-	int x = defuzz(hw->position_x, fs->hw.position_x, caps->abs[BIT_POSITION_X].fuzz);
-	int y = defuzz(hw->position_y, fs->hw.position_y, caps->abs[BIT_POSITION_Y].fuzz);
-	int tj = defuzz(hw->touch_major, fs->hw.touch_major, caps->abs[BIT_TOUCH_MAJOR].fuzz);
-	int tn = defuzz(hw->touch_minor, fs->hw.touch_minor, caps->abs[BIT_TOUCH_MAJOR].fuzz);
-	int wj = defuzz(hw->width_major, fs->hw.width_major, caps->abs[BIT_TOUCH_MAJOR].fuzz);
-	int wn = defuzz(hw->width_minor, fs->hw.width_minor, caps->abs[BIT_TOUCH_MAJOR].fuzz);
-	fs->id = id;
-	fs->hw = *hw;
-	fs->hw.position_x = x;
-	fs->hw.position_y = y;
-	if (hw->touch_major) {
-		fs->hw.touch_major = tj;
-		fs->hw.touch_minor = tn;
+	switch (ev->type) {
+	case EV_SYN:
+		switch (ev->code) {
+		case SYN_REPORT:
+			finish_packet(s, caps, ev);
+			return 1;
+		}
+		break;
+	case EV_KEY:
+		switch (ev->code) {
+		case BTN_LEFT:
+			MODBIT(s->button, MT_BUTTON_LEFT, ev->value);
+			break;
+		case BTN_MIDDLE:
+			MODBIT(s->button, MT_BUTTON_MIDDLE, ev->value);
+			break;
+		case BTN_RIGHT:
+			MODBIT(s->button, MT_BUTTON_RIGHT, ev->value);
+			break;
+		}
+		break;
+	case EV_ABS:
+		switch (ev->code) {
+		case ABS_MT_SLOT:
+			if (ev->value >= 0 && ev->value < DIM_FINGER)
+				s->slot = ev->value;
+			break;
+		case ABS_MT_TOUCH_MAJOR:
+			s->data[s->slot].touch_major = ev->value;
+			break;
+		case ABS_MT_TOUCH_MINOR:
+			s->data[s->slot].touch_minor = ev->value;
+			break;
+		case ABS_MT_WIDTH_MAJOR:
+			s->data[s->slot].width_major = ev->value;
+			break;
+		case ABS_MT_WIDTH_MINOR:
+			s->data[s->slot].width_minor = ev->value;
+			break;
+		case ABS_MT_ORIENTATION:
+			s->data[s->slot].orientation = ev->value;
+			break;
+		case ABS_MT_PRESSURE:
+			s->data[s->slot].pressure = ev->value;
+			break;
+		case ABS_MT_POSITION_X:
+			s->data[s->slot].position_x = ev->value;
+			break;
+		case ABS_MT_POSITION_Y:
+			s->data[s->slot].position_y = ev->value;
+			break;
+		case ABS_MT_TRACKING_ID:
+			s->data[s->slot].tracking_id = ev->value;
+			MODBIT(s->used, s->slot,
+			       ev->value != caps->nullid);
+			break;
+		}
+		break;
 	}
-	fs->hw.width_major = wj;
-	fs->hw.width_minor = wn;
-	if (!caps->has_abs[BIT_TOUCH_MINOR])
-		fs->hw.touch_minor = hw->touch_major;
-	if (!caps->has_abs[BIT_WIDTH_MINOR])
-		fs->hw.width_minor = hw->width_major;
+	return 0;
 }
 
-void modify_hwstate(struct HWState *s,
-		    const struct HWData *hw,
-		    const struct Capabilities *caps)
+int modify_hwstate(struct HWState *s, struct MTDev *dev,
+		   const struct Capabilities *caps)
 {
-	int A[DIM2_FINGER], *row;
-	int sid[DIM_FINGER], hw2s[DIM_FINGER];
-	int id, i, j;
-
-	/* setup distance matrix for finger id matching */
-	for (j = 0; j < s->nfinger; j++) {
-		sid[j] = s->finger[j].id;
-		if (NOTOUCH(&s->finger[j].hw, caps))
-			sid[j] = 0;
-		row = A + hw->nfinger * j;
-		for (i = 0; i < hw->nfinger; i++)
-			row[i] = finger_dist2(&hw->finger[i], &s->finger[j].hw);
+	struct input_event ev;
+	while (!mtdev_empty(dev)) {
+		mtdev_pop(dev, &ev);
+		if (read_event(s, caps, &ev))
+			return 1;
 	}
-
-	match_fingers(hw2s, A, hw->nfinger, s->nfinger);
-
-	/* update matched fingers and create new ones */
-	for (i = 0; i < hw->nfinger; i++) {
-		j = hw2s[i];
-		id = j >= 0 ? sid[j] : 0;
-		if (!NOTOUCH(&hw->finger[i], caps))
-			while (!id)
-				id = ++s->lastid;
-		set_finger(&s->finger[i], &hw->finger[i], id, caps);
-	}
-
-	/* clear remaining finger ids */
-	for (i = hw->nfinger; i < s->nfinger; i++)
-		s->finger[i].id = 0;
-
-	s->button = hw->button;
-	s->nfinger = hw->nfinger;
-	s->evtime = hw->evtime;
+	return 0;
 }

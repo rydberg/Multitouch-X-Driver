@@ -33,9 +33,9 @@ int configure_mtouch(struct MTouch *mt, int fd)
 int open_mtouch(struct MTouch *mt, int fd)
 {
 	int rc;
+	mtdev_init(&mt->dev, &mt->caps);
 	init_iobuf(&mt->buf);
-	init_hwdata(&mt->hw);
-	init_hwstate(&mt->hs);
+	init_hwstate(&mt->hs, &mt->caps);
 	init_mtstate(&mt->prev_state);
 	init_mtstate(&mt->state);
 	init_memory(&mt->mem);
@@ -50,18 +50,11 @@ int close_mtouch(struct MTouch *mt, int fd)
 	return rc;
 }
 
-int read_synchronized_event(struct MTouch *mt, int fd)
+int parse_event(struct MTouch *mt, const struct input_event *ev)
 {
-	const struct input_event *ev;
-	while (ev = get_iobuf_event(&mt->buf, fd))
-		if (read_hwdata(&mt->hw, ev))
-			return 1;
-	return 0;
-}
-
-void parse_event(struct MTouch *mt)
-{
-	modify_hwstate(&mt->hs, &mt->hw, &mt->caps);
+	mtdev_push(&mt->dev, &mt->caps, ev);
+	if (!modify_hwstate(&mt->hs, &mt->dev, &mt->caps))
+		return 0;
 	extract_mtstate(&mt->state, &mt->hs, &mt->caps);
 #if 0
 	output_mtstate(&mt->state);
@@ -70,4 +63,5 @@ void parse_event(struct MTouch *mt)
 #if 0
 	output_memory(&mt->mem);
 #endif
+	return 1;
 }

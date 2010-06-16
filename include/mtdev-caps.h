@@ -23,6 +23,7 @@
 #define MTDEV_CAPS_H
 
 #include "common.h"
+#include "button.h"
 #include "abs2mt.h"
 #include "mtbit.h"
 
