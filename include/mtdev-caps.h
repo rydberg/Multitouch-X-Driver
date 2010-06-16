@@ -19,8 +19,8 @@
  *
  **************************************************************************/
 
-#ifndef CAPABILITIES_H
-#define CAPABILITIES_H
+#ifndef MTDEV_CAPS_H
+#define MTDEV_CAPS_H
 
 #include "common.h"
 

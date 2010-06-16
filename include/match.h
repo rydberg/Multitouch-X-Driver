@@ -19,36 +19,18 @@
  *
  **************************************************************************/
 
-#include "iobuffer.h"
+#ifndef MATCHER_H
+#define MATCHER_H
 
-void init_iobuf(struct IOBuffer *buf)
-{
-	memset(buf, 0, sizeof(struct IOBuffer));
-	buf->at = buf->begin;
-	buf->top = buf->at;
-	buf->end = buf->begin + DIM_BUFFER;
-}
+/**
+ * Special implementation of the hungarian algorithm.
+ * The maximum number of fingers matches a uint32.
+ * Bitmasks are used extensively.
+ */
 
-const struct input_event *get_iobuf_event(struct IOBuffer *buf, int fd)
-{
-	const struct input_event *ev;
-	int n = buf->top - buf->at;
-	if (n < EVENT_SIZE) {
-		/* partial event is available: save it */
-		if (buf->at != buf->begin && n > 0)
-			memmove(buf->begin, buf->at, n);
-		/* start from the beginning */
-		buf->at = buf->begin;
-		buf->top = buf->at + n;
-		/* read more data */
-		SYSCALL(n = read(fd, buf->top, buf->end - buf->top));
-		if (n <= 0)
-			return NULL;
-		buf->top += n;
-	}
-	if (buf->top - buf->at < EVENT_SIZE)
-		return NULL;
-	ev = (const struct input_event *)buf->at;
-	buf->at += EVENT_SIZE;
-	return ev;
-}
+#include "common.h"
+
+void match_fingers(int index[DIM_FINGER], int A[DIM2_FINGER],
+		   int nrow, int ncol);
+
+#endif

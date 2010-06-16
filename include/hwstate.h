@@ -19,41 +19,29 @@
  *
  **************************************************************************/
 
-#ifndef MTOUCH_H
-#define MTOUCH_H
+#ifndef HWSTATE_H
+#define HWSTATE_H
 
-#include "capabilities.h"
-#include "iobuffer.h"
+#include "mtdev-caps.h"
 #include "hwdata.h"
-#include "hwstate.h"
-#include "mtstate.h"
-#include "memory.h"
 
-struct MTouch {
-	struct Capabilities caps;
-	struct IOBuffer buf;
-	struct HWData hw;
-	struct HWState hs;
-	struct MTState prev_state, state;
-	struct Memory mem;
+/* zero id means not mapped (not touching) */
+struct FingerState {
+	struct FingerData hw;
+	int id;
 };
 
-int configure_mtouch(struct MTouch *mt, int fd);
-int open_mtouch(struct MTouch *mt, int fd);
-int close_mtouch(struct MTouch *mt, int fd);
+struct HWState {
+	struct FingerState finger[DIM_FINGER];
+	unsigned button;
+	int nfinger;
+	mstime_t evtime;
+	int lastid;
+};
 
-int read_synchronized_event(struct MTouch *mt, int fd);
-void parse_event(struct MTouch *mt);
-
-
-static inline void mt_delay_movement(struct MTouch *mt, int t)
-{
-	mem_hold_movement(&mt->mem, mt->state.evtime + t);
-}
-
-static inline void mt_skip_movement(struct MTouch *mt, int t)
-{
-	mem_forget_movement(&mt->mem, mt->state.evtime + t);
-}
+void init_hwstate(struct HWState *s);
+void modify_hwstate(struct HWState *s,
+		    const struct HWData *hw,
+		    const struct Capabilities *caps);
 
 #endif

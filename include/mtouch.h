@@ -19,24 +19,40 @@
  *
  **************************************************************************/
 
-#include <common.h>
-#include <xbypass.h>
-#include <stdio.h>
-#include <time.h>
+#ifndef MTOUCH_H
+#define MTOUCH_H
 
-static void print_bitfield(unsigned m)
+#include "mtdev-iobuf.h"
+#include "hwdata.h"
+#include "hwstate.h"
+#include "mtstate.h"
+#include "memory.h"
+
+struct MTouch {
+	struct Capabilities caps;
+	struct IOBuffer buf;
+	struct HWData hw;
+	struct HWState hs;
+	struct MTState prev_state, state;
+	struct Memory mem;
+};
+
+int configure_mtouch(struct MTouch *mt, int fd);
+int open_mtouch(struct MTouch *mt, int fd);
+int close_mtouch(struct MTouch *mt, int fd);
+
+int read_synchronized_event(struct MTouch *mt, int fd);
+void parse_event(struct MTouch *mt);
+
+
+static inline void mt_delay_movement(struct MTouch *mt, int t)
 {
-	int i;
-
-	printf("%d\n", m);
-	foreach_bit(i, m)
-		printf("%d %d\n", i, 1 << i);
+	mem_hold_movement(&mt->mem, mt->state.evtime + t);
 }
 
-int main(int argc, char *argv[])
+static inline void mt_skip_movement(struct MTouch *mt, int t)
 {
-	print_bitfield(5);
-	print_bitfield(126);
-	print_bitfield(0);
-	return 0;
+	mem_forget_movement(&mt->mem, mt->state.evtime + t);
 }
+
+#endif

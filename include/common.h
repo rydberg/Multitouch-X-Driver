@@ -28,7 +28,6 @@
 #include <xf86Xinput.h>
 #include <linux/input.h>
 #include <errno.h>
-#include <match/match.h>
 
 /* includes available in 2.6.30-rc5 */
 
@@ -43,6 +42,7 @@
 #define ABS_MT_POSITION_Y	0x36	/* Center Y ellipse position */
 #define ABS_MT_TOOL_TYPE	0x37	/* Type of touching device */
 #define ABS_MT_BLOB_ID		0x38	/* Group a set of packets as a blob */
+#define ABS_MT_TRACKING_ID	0x39	/* Unique ID of initiated contact */
 #define SYN_MT_REPORT		2
 #define MT_TOOL_FINGER		0
 #define MT_TOOL_PEN		1
@@ -53,13 +53,43 @@
 #define ABS_MT_PRESSURE		0x3a	/* Pressure on contact area */
 #endif
 
-#define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
+/* includes available in 2.6.36 */
+#ifndef ABS_MT_SLOT
+#define ABS_MT_SLOT		0x2f	/* MT slot being modified */
+#define MT_ABS_SIZE		11	/* Size of MT_SLOT_ABS_EVENTS */
+#define MT_SLOT_ABS_EVENTS {	\
+	ABS_MT_TOUCH_MAJOR,	\
+	ABS_MT_TOUCH_MINOR,	\
+	ABS_MT_WIDTH_MAJOR,	\
+	ABS_MT_WIDTH_MINOR,	\
+	ABS_MT_ORIENTATION,	\
+	ABS_MT_POSITION_X,	\
+	ABS_MT_POSITION_Y,	\
+	ABS_MT_TOOL_TYPE,	\
+	ABS_MT_BLOB_ID,		\
+	ABS_MT_TRACKING_ID,	\
+	ABS_MT_PRESSURE,	\
+}
+#endif
+
+#define DIM_FINGER 32
+#define DIM2_FINGER (DIM_FINGER * DIM_FINGER)
+
+/* event buffer size (must be a power of two) */
+#define DIM_EVENTS 64
+
+/* year-proof millisecond event time */
+typedef __u64 mstime_t;
+
+/* all bit masks have this type */
+typedef unsigned int bitmask_t;
 
 #define BITMASK(x) (1U << (x))
 #define BITONES(x) (BITMASK(x) - 1U)
 #define GETBIT(m, x) (((m) >> (x)) & 1U)
 #define SETBIT(m, x) (m |= BITMASK(x))
 #define CLEARBIT(m, x) (m &= ~BITMASK(x))
+#define MODBIT(m, x, b) ((b) ? SETBIT(m, x) : CLEARBIT(m, x))
 
 static inline int maxval(int x, int y) { return x > y ? x : y; }
 static inline int minval(int x, int y) { return x < y ? x : y; }
@@ -91,5 +121,8 @@ static inline int bitcount(unsigned v)
 /* boost-style foreach bit */
 #define foreach_bit(i, m)						\
 	for (i = firstbit(m); i >= 0; i = firstbit((m) & (~0U << i + 1)))
+
+/* robust system ioctl calls */
+#define SYSCALL(call) while (((call) == -1) && (errno == EINTR))
 
 #endif

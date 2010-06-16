@@ -19,9 +19,10 @@
  *
  **************************************************************************/
 
+#include <match.h>
+#include <xbypass.h>
 #include <stdio.h>
 #include <time.h>
-#include "match.c"
 
 #define ITS 1000000
 

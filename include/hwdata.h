@@ -23,24 +23,7 @@
 #define HWDATA_H
 
 #include "common.h"
-
-#define DIM_BUTTON 15
-
-#define MT_BUTTON_LEFT 0
-#define MT_BUTTON_MIDDLE 1
-#define MT_BUTTON_RIGHT 2
-#define MT_BUTTON_WHEEL_UP 3
-#define MT_BUTTON_WHEEL_DOWN 4
-#define MT_BUTTON_HWHEEL_LEFT 5
-#define MT_BUTTON_HWHEEL_RIGHT 6
-#define MT_BUTTON_SWIPE_UP 7
-#define MT_BUTTON_SWIPE_DOWN 8
-#define MT_BUTTON_SWIPE_LEFT 9
-#define MT_BUTTON_SWIPE_RIGHT 10
-#define MT_BUTTON_SCALE_DOWN 11
-#define MT_BUTTON_SCALE_UP 12
-#define MT_BUTTON_ROTATE_LEFT 13
-#define MT_BUTTON_ROTATE_RIGHT 14
+#include "button.h"
 
 #define BIT_MT_TOUCH_MAJOR 0
 #define BIT_MT_TOUCH_MINOR 1
@@ -58,9 +41,6 @@ struct FingerData {
 	int orientation, pressure;
 	int position_x, position_y;
 };
-
-/* year-proof millisecond event time */
-typedef __u64 mstime_t;
 
 /**
  * struct HWData - hardware reads

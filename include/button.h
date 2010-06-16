@@ -19,20 +19,25 @@
  *
  **************************************************************************/
 
-#ifndef IOBUFFER_H
-#define IOBUFFER_H
+#ifndef BUTTON_H
+#define BUTTON_H
 
-#include "common.h"
+#define DIM_BUTTON 15
 
-#define EVENT_SIZE sizeof(struct input_event)
-#define DIM_EVENTS 64
-#define DIM_BUFFER (DIM_EVENTS * EVENT_SIZE)
-
-struct IOBuffer {
-	char begin[DIM_BUFFER], *at, *top, *end;
-};
-
-void init_iobuf(struct IOBuffer *buf);
-const struct input_event *get_iobuf_event(struct IOBuffer *buf, int fd);
+#define MT_BUTTON_LEFT 0
+#define MT_BUTTON_MIDDLE 1
+#define MT_BUTTON_RIGHT 2
+#define MT_BUTTON_WHEEL_UP 3
+#define MT_BUTTON_WHEEL_DOWN 4
+#define MT_BUTTON_HWHEEL_LEFT 5
+#define MT_BUTTON_HWHEEL_RIGHT 6
+#define MT_BUTTON_SWIPE_UP 7
+#define MT_BUTTON_SWIPE_DOWN 8
+#define MT_BUTTON_SWIPE_LEFT 9
+#define MT_BUTTON_SWIPE_RIGHT 10
+#define MT_BUTTON_SCALE_DOWN 11
+#define MT_BUTTON_SCALE_UP 12
+#define MT_BUTTON_ROTATE_LEFT 13
+#define MT_BUTTON_ROTATE_RIGHT 14
 
 #endif

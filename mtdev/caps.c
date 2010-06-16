@@ -19,7 +19,7 @@
  *
  **************************************************************************/
 
-#include "capabilities.h"
+#include <mtdev-caps.h>
 
 #define SETABS(c, x, map, key, fd)					\
 	(c->has_##x = getbit(map, key) && getabs(&c->abs_##x, key, fd))

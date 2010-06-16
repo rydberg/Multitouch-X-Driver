@@ -20,8 +20,6 @@
  **************************************************************************/
 
 #include "hwstate.h"
-#include <stdlib.h>
-#include <limits.h>
 
 #define NOTOUCH(hw, c) ((hw)->touch_major == 0 && (c)->has_touch_major)
 
