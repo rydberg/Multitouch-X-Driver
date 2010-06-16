@@ -27,6 +27,7 @@
 
 static const int FINGER_THUMB_MS = 600;
 static const int BUTTON_HOLD_MS = 200;
+#define use_tapping 0
 
 /**
  * extract_buttons
@@ -47,6 +48,12 @@ static void extract_buttons(struct Gestures *gs, struct MTouch* mt)
 			btdata = BITMASK(MT_BUTTON_MIDDLE);
 	}
 	if (mt->state.button != mt->prev_state.button) {
+		gs->btmask = (btdata ^ mt->mem.btdata) & BITONES(DIM_BUTTON);
+		gs->btdata = btdata;
+		mt->mem.btdata = btdata;
+	} else if (btdata == 0 && mt->mem.ntap) {
+		if (npoint == 1 && mt->mem.maxtap == 1)
+			btdata = BITMASK(MT_BUTTON_LEFT);
 		gs->btmask = (btdata ^ mt->mem.btdata) & BITONES(DIM_BUTTON);
 		gs->btdata = btdata;
 		mt->mem.btdata = btdata;
@@ -178,6 +185,40 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 	mt->prev_state = mt->state;
 }
 
+/**
+ * extract_delayed_gestures
+ *
+ * Extract delayed gestures, such as tapping
+ *
+ * Reset memory after use.
+ *
+ */
+void extract_delayed_gestures(struct Gestures *gs, struct MTouch* mt)
+{
+	mt->mem.wait = 0;
+
+	if (!use_tapping && mt->caps.has_left)
+		return;
+
+	if (mt->mem.tpdown < mt->mem.tpup) {
+		switch (mt->mem.maxtap) {
+		case 1:
+			gs->tapmask = BITMASK(MT_BUTTON_LEFT);
+			break;
+		case 2:
+			gs->tapmask = BITMASK(MT_BUTTON_RIGHT);
+			break;
+		case 3:
+			gs->tapmask = BITMASK(MT_BUTTON_MIDDLE);
+			break;
+		}
+	}
+
+	if (gs->tapmask)
+		SETBIT(gs->type, GS_TAP);
+
+	gs->ntap = mt->mem.ntap;
+}
 
 void output_gesture(const struct Gestures *gs)
 {
@@ -199,4 +240,6 @@ void output_gesture(const struct Gestures *gs)
 		xf86Msg(X_INFO, "scale: %d\n", gs->scale);
 	if (GETBIT(gs->type, GS_ROTATE))
 		xf86Msg(X_INFO, "rotate: %d\n", gs->rot);
+	foreach_bit(i, gs->tapmask)
+		xf86Msg(X_INFO, "tap: %d %d\n", i, gs->ntap);
 }

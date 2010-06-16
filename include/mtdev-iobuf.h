@@ -33,5 +33,6 @@ struct IOBuffer {
 
 void init_iobuf(struct IOBuffer *buf);
 const struct input_event *get_iobuf_event(struct IOBuffer *buf, int fd);
+int poll_iobuf(struct IOBuffer *buf, int fd, int ms);
 
 #endif

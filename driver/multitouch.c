@@ -245,6 +245,10 @@ static void handle_gestures(LocalDevicePtr local,
 		int step = 1 + rot_fraction * get_cap_xsize(caps);
 		button_scroll(local, 14, 15, &rot, step, gs->rot);
 	}
+	if (GETBIT(gs->type, GS_TAP) && gs->ntap == 1) {
+		foreach_bit(i, gs->tapmask)
+			tickle_button(local, i + 1);
+	}
 }
 
 /* called for each full received packet from the touchpad */
@@ -256,6 +260,10 @@ static void read_input(LocalDevicePtr local)
 	while (ev = get_iobuf_event(&mt->buf, local->fd)) {
 		if (parse_event(mt, ev)) {
 			extract_gestures(&gs, mt);
+			handle_gestures(local, &gs, &mt->caps);
+		}
+		if (mt_is_idle(mt, local->fd)) {
+			extract_delayed_gestures(&gs, mt);
 			handle_gestures(local, &gs, &mt->caps);
 		}
 	}

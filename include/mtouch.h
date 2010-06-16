@@ -40,6 +40,8 @@ int close_mtouch(struct MTouch *mt, int fd);
 
 int parse_event(struct MTouch *mt, const struct input_event *ev);
 
+int mt_is_idle(struct MTouch *mt, int fd);
+
 static inline void mt_delay_movement(struct MTouch *mt, int t)
 {
 	mem_hold_movement(&mt->mem, mt->state.evtime + t);

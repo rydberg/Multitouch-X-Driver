@@ -27,10 +27,19 @@
 /* fraction of max movement threshold */
 #define DELTA_CUT(x) (0.5 * (x))
 
+/* fraction of tap movement threshold */
+#define TAP_XMOVE(c) (0.05 * get_cap_xsize(c))
+#define TAP_YMOVE(c) (0.05 * get_cap_ysize(c))
+
 /* timer for cursor stability on finger touch/release */
 static const int FINGER_ATTACK_MS = 40;
 static const int FINGER_DECAY_MS = 120;
 static const int FINGER_CORNER_MS = 300;
+
+/* tapping timings */
+static const int TAP_SETTLE_MS = 400;
+static const int TAP_TOUCH_MS = 120;
+static const int TAP_GAP_MS = 200;
 
 static inline int dxval(const struct FingerState *a,
 			const struct FingerState *b)
@@ -43,6 +52,23 @@ static inline int dyval(const struct FingerState *a,
 	return a->position_y - b->position_y;
 }
 
+static inline void relax_tapping(struct Memory *m, const struct MTState *state)
+{
+	m->tprelax = state->evtime + TAP_SETTLE_MS;
+	m->wait = 0;
+	m->ntap = 0;
+}
+
+static inline int unrelated_taps(const struct Memory *m,
+				 const struct Capabilities *caps)
+{
+	return abs(m->xdown - m->xup) > TAP_XMOVE(caps) ||
+		abs(m->ydown - m->yup) > TAP_YMOVE(caps);
+}
+
+/**
+ * init_memory
+ */
 void init_memory(struct Memory *mem)
 {
 	memset(mem, 0, sizeof(struct Memory));
@@ -188,6 +214,63 @@ static void update_movement(struct Memory *m,
 	m->moving = m->pending;
 }
 
+/**
+ * update_tapping
+ *
+ * Update tpdown, tpup, tprelax, wait, maxtap, ntap.
+ *
+ * Precondition: pointing and thumb are set
+ *
+ * Postcondition: tpdown, tpup, tprelax, wait, maxtap, ntap set
+ *
+ */
+static void update_tapping(struct Memory *m,
+			   const struct MTState *prev_state,
+			   const struct MTState *state,
+			   const struct Capabilities *caps)
+{
+	int x, y, i, npoint = bitcount(m->pointing);
+
+	/* use a position independent on the number of fingers */
+	if (state->nfinger) {
+		x = state->finger[0].position_x;
+		y = state->finger[0].position_y;
+		for (i = 1; i < state->nfinger; i++) {
+			x = minval(x, state->finger[i].position_x);
+			y = minval(y, state->finger[i].position_y);
+		}
+	}
+
+	if (m->thumb || state->evtime < m->mvforget) {
+		relax_tapping(m, state);
+	} else if (state->nfinger && !prev_state->nfinger) {
+		m->tpdown = state->evtime;
+		m->xdown = x;
+		m->ydown = y;
+		m->wait = 0;
+		m->maxtap = npoint;
+		if (m->tpdown > m->tpup + TAP_GAP_MS)
+			m->ntap = 0;
+		else if (unrelated_taps(m, caps))
+			relax_tapping(m, state);
+		m->xup = x;
+		m->yup = y;
+	} else if (!state->nfinger && prev_state->nfinger) {
+		m->tpup = state->evtime;
+		if (m->tpup > m->tprelax &&
+		    m->tpup <= m->tpdown + TAP_TOUCH_MS) {
+			m->wait = TAP_GAP_MS;
+			m->ntap++;
+			if (unrelated_taps(m, caps))
+				relax_tapping(m, state);
+		}
+	} else if (state->nfinger) {
+		m->xup = minval(m->xup, x);
+		m->yup = minval(m->yup, y);
+		m->maxtap = maxval(m->maxtap, npoint);
+	}
+}
+
 void refresh_memory(struct Memory *m,
 		    const struct MTState *prev_state,
 		    const struct MTState *state,
@@ -196,6 +279,7 @@ void refresh_memory(struct Memory *m,
 	update_configuration(m, prev_state, state);
 	update_pointers(m, state, caps);
 	update_movement(m, prev_state, state, caps);
+	update_tapping(m, prev_state, state, caps);
 }
 
 void output_memory(const struct Memory *m)

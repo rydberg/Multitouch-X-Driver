@@ -20,6 +20,7 @@
  **************************************************************************/
 
 #include <mtdev-iobuf.h>
+#include <sys/poll.h>
 
 void init_iobuf(struct IOBuffer *buf)
 {
@@ -51,4 +52,12 @@ const struct input_event *get_iobuf_event(struct IOBuffer *buf, int fd)
 	ev = (const struct input_event *)buf->at;
 	buf->at += EVENT_SIZE;
 	return ev;
+}
+
+int poll_iobuf(struct IOBuffer *buf, int fd, int ms)
+{
+	struct pollfd fds = { fd, POLLIN, 0 };
+	if (buf->top != buf->at)
+		return 1;
+	return poll(&fds, 1, ms);
 }

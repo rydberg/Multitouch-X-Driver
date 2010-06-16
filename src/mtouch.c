@@ -73,3 +73,11 @@ int parse_event(struct MTouch *mt, const struct input_event *ev)
 #endif
 	return 1;
 }
+
+int mt_is_idle(struct MTouch *mt, int fd)
+{
+	return mt->mem.wait &&
+		evbuf_empty(&mt->dev.outbuf) &&
+		evbuf_empty(&mt->dev.inbuf) &&
+		poll_iobuf(&mt->buf, fd, mt->mem.wait) == 0;
+}

@@ -32,13 +32,17 @@
 #define GS_HSWIPE 5
 #define GS_SCALE 6
 #define GS_ROTATE 7
+#define GS_TAP 8
 
 struct Gestures {
 	bitmask_t type, btmask, btdata;
 	int same_fingers, dx, dy, scale, rot;
+	bitmask_t tapmask;
+	int ntap;
 };
 
 void extract_gestures(struct Gestures *gs, struct MTouch* mt);
+void extract_delayed_gestures(struct Gestures *gs, struct MTouch* mt);
 void output_gesture(const struct Gestures *gs);
 
 #endif

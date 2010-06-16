@@ -42,6 +42,10 @@ static void loop_device(int fd)
 			extract_gestures(&gs, &mt);
 			output_gesture(&gs);
 		}
+		if (mt_is_idle(&mt, fd)) {
+			extract_delayed_gestures(&gs, &mt);
+			output_gesture(&gs);
+		}
 	}
 	close_mtouch(&mt, fd);
 }

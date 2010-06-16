@@ -40,6 +40,16 @@
  * @mvforget: movement before this point in time is discarded
  * @dx: array of accumulated horiontal movement per finger
  * @dy: array of accumulated vertical movement per finger
+ * @tpdown: time of first touch
+ * @tpup: time of last release
+ * @tprelax: time of next possible touch
+ * @xdown: x position of first touch
+ * @ydown: y position of first touch
+ * @xup: x position of last release
+ * @yup: y position of last release
+ * @wait: time to wait for a second tap
+ * @maxtap: max number of pointing fingers during touch
+ * @ntap: number of taps in sequence
  *
  */
 struct Memory {
@@ -49,6 +59,9 @@ struct Memory {
 	int ybar;
 	mstime_t mvhold, mvforget;
 	int dx[DIM_FINGER], dy[DIM_FINGER];
+	mstime_t tpdown, tpup, tprelax;
+	int xdown, ydown, xup, yup;
+	int wait, maxtap, ntap;
 };
 
 void init_memory(struct Memory *mem);
