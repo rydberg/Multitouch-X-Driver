@@ -215,11 +215,9 @@ static void handle_gestures(LocalDevicePtr local,
 		vswipe = 0;
 		hswipe = 0;
 	}
-	for (i = 0; i < DIM_BUTTON; i++) {
-		if (GETBIT(gs->btmask, i))
-			xf86PostButtonEvent(local->dev, FALSE,
-					    i + 1, GETBIT(gs->btdata, i), 0, 0);
-	}
+	foreach_bit(i, gs->btmask)
+		xf86PostButtonEvent(local->dev, FALSE,
+				    i + 1, GETBIT(gs->btdata, i), 0, 0);
 	if (GETBIT(gs->type, GS_MOVE))
 		xf86PostMotionEvent(local->dev, 0, 0, 2, gs->dx, gs->dy);
 
