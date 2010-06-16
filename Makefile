@@ -1,6 +1,6 @@
 VERSION = 1
 PATCHLEVEL = 0
-EXTRAVERSION = alpha3
+EXTRAVERSION = beta1
 
 LIBRARY	= multitouch.so
 FDIS	= 11-multitouch.fdi
