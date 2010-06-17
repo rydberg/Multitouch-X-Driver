@@ -75,5 +75,7 @@ int read_packet(struct MTouch *mt, int fd)
 
 int has_delayed_gestures(struct MTouch *mt, int fd)
 {
-	return mt->mem.wait && mtdev_idle(&mt->dev, fd, mt->mem.wait);
+	return mt->mem.wait &&
+		mtdev_empty(&mt->dev) &&
+		mtdev_idle(&mt->dev, fd, mt->mem.wait);
 }
