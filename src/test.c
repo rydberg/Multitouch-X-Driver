@@ -35,8 +35,8 @@ static void loop_device(int fd)
 		fprintf(stderr, "error: could not open device\n");
 		return;
 	}
-	while (mtdev_pull(&mt.dev, fd, 1) > 0) {
-		if (parse_event(&mt)) {
+	while (!mtdev_idle(&mt.dev, fd, 5000)) {
+		while (read_packet(&mt, fd) > 0) {
 			extract_gestures(&gs, &mt);
 			output_gesture(&gs);
 		}
