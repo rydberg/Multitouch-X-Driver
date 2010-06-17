@@ -32,26 +32,37 @@ int configure_mtouch(struct MTouch *mt, int fd)
 	return 0;
 }
 
+
 int open_mtouch(struct MTouch *mt, int fd)
 {
-	mtdev_open(&mt->dev, fd);
+	int ret;
+	ret = mtdev_open(&mt->dev, fd);
+	if (ret)
+		goto error;
 	init_hwstate(&mt->hs, &mt->caps);
 	init_mtstate(&mt->prev_state);
 	init_mtstate(&mt->state);
 	init_memory(&mt->mem);
 	if (use_grab) {
-		int rc;
-		SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)1));
-		return rc;
+		SYSCALL(ret = ioctl(fd, EVIOCGRAB, 1));
+		if (ret)
+			goto close;
 	}
 	return 0;
+ close:
+	mtdev_close(&mt->dev);
+ error:
+	return ret;
 }
+
 
 int close_mtouch(struct MTouch *mt, int fd)
 {
+	int ret;
 	if (use_grab) {
-		int rc;
-		SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)0));
+		SYSCALL(ret = ioctl(fd, EVIOCGRAB, 0));
+		if (ret)
+			xf86Msg(X_WARNING, "mtouch: ungrab failed\n");
 	}
 	mtdev_close(&mt->dev);
 	return 0;
