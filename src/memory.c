@@ -21,6 +21,8 @@
 
 #include "memory.h"
 
+#define use_tapping 0
+
 /* click area definition */
 #define CLICK_AREA(c) ((c->has_ibt ? 0.20 : 0.00) * get_cap_ysize(c))
 
@@ -279,7 +281,8 @@ void refresh_memory(struct Memory *m,
 	update_configuration(m, prev_state, state);
 	update_pointers(m, state, caps);
 	update_movement(m, prev_state, state, caps);
-	update_tapping(m, prev_state, state, caps);
+	if (use_tapping || !caps->has_left)
+		update_tapping(m, prev_state, state, caps);
 }
 
 void output_memory(const struct Memory *m)

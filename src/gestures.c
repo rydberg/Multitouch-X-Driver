@@ -27,7 +27,6 @@
 
 static const int FINGER_THUMB_MS = 600;
 static const int BUTTON_HOLD_MS = 200;
-#define use_tapping 0
 
 /**
  * extract_buttons
@@ -196,9 +195,6 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
 void extract_delayed_gestures(struct Gestures *gs, struct MTouch* mt)
 {
 	mt->mem.wait = 0;
-
-	if (!use_tapping && mt->caps.has_left)
-		return;
 
 	if (mt->mem.tpdown < mt->mem.tpup) {
 		switch (mt->mem.maxtap) {
