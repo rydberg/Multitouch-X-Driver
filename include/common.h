@@ -56,7 +56,6 @@
 /* includes available in 2.6.36 */
 #ifndef ABS_MT_SLOT
 #define ABS_MT_SLOT		0x2f	/* MT slot being modified */
-#define MT_ABS_SIZE		11	/* Size of MT_SLOT_ABS_EVENTS */
 #define MT_SLOT_ABS_EVENTS {	\
 	ABS_MT_TOUCH_MAJOR,	\
 	ABS_MT_TOUCH_MINOR,	\
@@ -71,6 +70,8 @@
 	ABS_MT_PRESSURE,	\
 }
 #endif
+
+#define MT_ABS_SIZE		11	/* Size of MT_SLOT_ABS_EVENTS */
 
 #define DIM_FINGER 32
 #define DIM2_FINGER (DIM_FINGER * DIM_FINGER)
