@@ -256,16 +256,13 @@ static void read_input(LocalDevicePtr local)
 {
 	struct Gestures gs;
 	struct MTouch *mt = local->private;
-	const struct input_event *ev;
-	while (ev = get_iobuf_event(&mt->buf, local->fd)) {
-		if (parse_event(mt, ev)) {
-			extract_gestures(&gs, mt);
-			handle_gestures(local, &gs, &mt->caps);
-		}
-		if (mt_is_idle(mt, local->fd)) {
-			extract_delayed_gestures(&gs, mt);
-			handle_gestures(local, &gs, &mt->caps);
-		}
+	while (read_packet(mt, local->fd) > 0) {
+		extract_gestures(&gs, mt);
+		handle_gestures(local, &gs, &mt->caps);
+	}
+	if (has_delayed_gestures(mt, local->fd)) {
+		extract_delayed_gestures(&gs, mt);
+		handle_gestures(local, &gs, &mt->caps);
 	}
 }
 

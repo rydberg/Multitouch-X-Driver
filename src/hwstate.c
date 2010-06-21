@@ -43,8 +43,8 @@ static void finish_packet(struct HWState *s, const struct Capabilities *caps,
 	s->evtime = syn->time.tv_usec / ms + syn->time.tv_sec * ms;
 }
 
-static int read_event(struct HWState *s, const struct Capabilities *caps,
-		      const struct input_event *ev)
+int hwstate_read(struct HWState *s, const struct Capabilities *caps,
+		 const struct input_event *ev)
 {
 	switch (ev->type) {
 	case EV_SYN:
@@ -104,18 +104,6 @@ static int read_event(struct HWState *s, const struct Capabilities *caps,
 			break;
 		}
 		break;
-	}
-	return 0;
-}
-
-int modify_hwstate(struct HWState *s, struct MTDev *dev,
-		   const struct Capabilities *caps)
-{
-	struct input_event ev;
-	while (!mtdev_empty(dev)) {
-		mtdev_get(dev, &ev);
-		if (read_event(s, caps, &ev))
-			return 1;
 	}
 	return 0;
 }

@@ -42,8 +42,8 @@ struct HWState {
 
 void init_hwstate(struct HWState *s,
 		  const struct Capabilities *caps);
-int modify_hwstate(struct HWState *s, struct MTDev *dev,
-		   const struct Capabilities *caps);
+int hwstate_read(struct HWState *s, const struct Capabilities *caps,
+		 const struct input_event *ev);
 void output_hwstate(const struct HWState *s);
 
 static inline int finger_dist2(const struct FingerState *a,

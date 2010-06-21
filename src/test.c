@@ -27,8 +27,6 @@ static void loop_device(int fd)
 {
 	struct Gestures gs;
 	struct MTouch mt;
-	const struct input_event *ev;
-	struct input_event event;
 	if (configure_mtouch(&mt, fd)) {
 		fprintf(stderr, "error: could not configure device\n");
 		return;
@@ -37,12 +35,12 @@ static void loop_device(int fd)
 		fprintf(stderr, "error: could not open device\n");
 		return;
 	}
-	while (ev = get_iobuf_event(&mt.buf, fd)) {
-		if (parse_event(&mt, ev)) {
+	while (poll_iobuf(&mt.buf, fd, 5000)) {
+		while (read_packet(&mt, fd) > 0) {
 			extract_gestures(&gs, &mt);
 			output_gesture(&gs);
 		}
-		if (mt_is_idle(&mt, fd)) {
+		if (has_delayed_gestures(&mt, fd)) {
 			extract_delayed_gestures(&gs, &mt);
 			output_gesture(&gs);
 		}
@@ -56,7 +54,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Usage: test <mtdev>\n");
 		return -1;
 	}
-	int fd = open(argv[1], O_RDONLY);
+	int fd = open(argv[1], O_RDONLY | O_NONBLOCK);
 	if (fd < 0) {
 		fprintf(stderr, "error: could not open file\n");
 		return -1;

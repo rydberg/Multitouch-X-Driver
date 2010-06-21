@@ -36,11 +36,12 @@ struct MTouch {
 
 int configure_mtouch(struct MTouch *mt, int fd);
 int open_mtouch(struct MTouch *mt, int fd);
+int get_mtouch(struct MTouch *mt, int fd, struct input_event* ev, int ev_max);
 int close_mtouch(struct MTouch *mt, int fd);
 
 int parse_event(struct MTouch *mt, const struct input_event *ev);
 
-int mt_is_idle(struct MTouch *mt, int fd);
+int has_delayed_gestures(struct MTouch *mt, int fd);
 
 static inline void mt_delay_movement(struct MTouch *mt, int t)
 {
