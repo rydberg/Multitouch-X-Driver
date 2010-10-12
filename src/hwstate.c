@@ -26,7 +26,7 @@ void init_hwstate(struct HWState *s, const struct Capabilities *caps)
 	int i;
 	memset(s, 0, sizeof(struct HWState));
 	for (i = 0; i < DIM_FINGER; i++)
-		s->data[i].tracking_id = caps->nullid;
+		s->data[i].tracking_id = MT_ID_NULL;
 }
 
 static void finish_packet(struct HWState *s, const struct Capabilities *caps,
@@ -35,16 +35,16 @@ static void finish_packet(struct HWState *s, const struct Capabilities *caps,
 	static const mstime_t ms = 1000;
 	int i;
 	foreach_bit(i, s->used) {
-		if (!caps->has_abs[BIT_TOUCH_MINOR])
+		if (!caps->has_abs[MTDEV_TOUCH_MINOR])
 			s->data[i].touch_minor = s->data[i].touch_major;
-		if (!caps->has_abs[BIT_WIDTH_MINOR])
+		if (!caps->has_abs[MTDEV_WIDTH_MINOR])
 			s->data[i].width_minor = s->data[i].width_major;
 	}
 	s->evtime = syn->time.tv_usec / ms + syn->time.tv_sec * ms;
 }
 
-int hwstate_read(struct HWState *s, const struct Capabilities *caps,
-		 const struct input_event *ev)
+static int read_event(struct HWState *s, const struct Capabilities *caps,
+                      const struct input_event *ev)
 {
 	switch (ev->type) {
 	case EV_SYN:
@@ -99,11 +99,21 @@ int hwstate_read(struct HWState *s, const struct Capabilities *caps,
 			break;
 		case ABS_MT_TRACKING_ID:
 			s->data[s->slot].tracking_id = ev->value;
-			MODBIT(s->used, s->slot,
-			       ev->value != caps->nullid);
+			MODBIT(s->used, s->slot, ev->value != MT_ID_NULL);
 			break;
 		}
 		break;
 	}
 	return 0;
+}
+
+int modify_hwstate(struct HWState *s, struct mtdev *dev, int fd,
+		   const struct Capabilities *caps)
+{
+	struct input_event ev;
+	int ret;
+	while ((ret = mtdev_get(dev, fd, &ev, 1)) > 0)
+		if (read_event(s, caps, &ev))
+			return 1;
+	return ret;
 }

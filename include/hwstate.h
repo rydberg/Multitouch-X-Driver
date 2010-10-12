@@ -22,7 +22,7 @@
 #ifndef HWSTATE_H
 #define HWSTATE_H
 
-#include "mtdev.h"
+#include "capabilities.h"
 
 struct FingerState {
 	int touch_major, touch_minor;
@@ -42,8 +42,8 @@ struct HWState {
 
 void init_hwstate(struct HWState *s,
 		  const struct Capabilities *caps);
-int hwstate_read(struct HWState *s, const struct Capabilities *caps,
-		 const struct input_event *ev);
+int modify_hwstate(struct HWState *s, struct mtdev *dev, int fd,
+		   const struct Capabilities *caps);
 void output_hwstate(const struct HWState *s);
 
 static inline int finger_dist2(const struct FingerState *a,

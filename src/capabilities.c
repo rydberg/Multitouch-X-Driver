@@ -19,8 +19,7 @@
  *
  **************************************************************************/
 
-#include "mtdev-caps.h"
-#include "mtbit.h"
+#include "capabilities.h"
 
 #define SETABS(c, x, map, key, fd)					\
 	(c->has_##x = getbit(map, key) && getabs(&c->x, key, fd))
@@ -52,7 +51,7 @@ static int getabs(struct input_absinfo *abs, int key, int fd)
 
 static int has_mt_data(const struct Capabilities *cap)
 {
-	return cap->has_abs[BIT_POSITION_X] && cap->has_abs[BIT_POSITION_Y];
+	return cap->has_abs[MTDEV_POSITION_X] && cap->has_abs[MTDEV_POSITION_Y];
 }
 
 static int has_integrated_button(const struct Capabilities *cap)
@@ -65,7 +64,7 @@ static int has_integrated_button(const struct Capabilities *cap)
 
 static void default_fuzz(struct Capabilities *cap, unsigned int code, int sn)
 {
-	int bit = abs2mt(code);
+	int bit = mtdev_abs2mt(code);
 	if (cap->has_abs[bit] && cap->abs[bit].fuzz == 0)
 		cap->abs[bit].fuzz =
 			(cap->abs[bit].maximum - cap->abs[bit].minimum) / sn;
@@ -102,13 +101,10 @@ int read_capabilities(struct Capabilities *cap, int fd)
 
 	SETABS(cap, slot, absbits, ABS_MT_SLOT, fd);
 	for (i = 0; i < MT_ABS_SIZE; i++)
-		SETABS(cap, abs[i], absbits, mt2abs(i), fd);
+		SETABS(cap, abs[i], absbits, mtdev_mt2abs(i), fd);
 
 	cap->has_mtdata = has_mt_data(cap);
 	cap->has_ibt = has_integrated_button(cap);
-
-	if (cap->has_abs[BIT_TRACKING_ID])
-		cap->nullid = cap->abs[BIT_TRACKING_ID].minimum - 1;
 
 	default_fuzz(cap, ABS_MT_POSITION_X, SN_COORD);
 	default_fuzz(cap, ABS_MT_POSITION_Y, SN_COORD);
@@ -123,31 +119,31 @@ int read_capabilities(struct Capabilities *cap, int fd)
 
 int get_cap_xsize(const struct Capabilities *cap)
 {
-	const struct input_absinfo *x = &cap->abs[BIT_POSITION_X];
+	const struct input_absinfo *x = &cap->abs[MTDEV_POSITION_X];
 	return x->maximum - x->minimum;
 }
 
 int get_cap_ysize(const struct Capabilities *cap)
 {
-	const struct input_absinfo *y = &cap->abs[BIT_POSITION_Y];
+	const struct input_absinfo *y = &cap->abs[MTDEV_POSITION_Y];
 	return y->maximum - y->minimum;
 }
 
 int get_cap_wsize(const struct Capabilities *cap)
 {
-	const struct input_absinfo *w = &cap->abs[BIT_TOUCH_MAJOR];
+	const struct input_absinfo *w = &cap->abs[MTDEV_TOUCH_MAJOR];
 	return w->maximum - w->minimum;
 }
 
 int get_cap_xmid(const struct Capabilities *cap)
 {
-	const struct input_absinfo *x = &cap->abs[BIT_POSITION_X];
+	const struct input_absinfo *x = &cap->abs[MTDEV_POSITION_X];
 	return (x->maximum + x->minimum) >> 1;
 }
 
 int get_cap_ymid(const struct Capabilities *cap)
 {
-	const struct input_absinfo *y = &cap->abs[BIT_POSITION_Y];
+	const struct input_absinfo *y = &cap->abs[MTDEV_POSITION_Y];
 	return (y->maximum + y->minimum) >> 1;
 }
 

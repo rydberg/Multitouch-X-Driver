@@ -26,58 +26,11 @@
 #include <xf86.h>
 #include <xf86_OSproc.h>
 #include <xf86Xinput.h>
-#include <linux/input.h>
 #include <errno.h>
-
-/* includes available in 2.6.30-rc5 */
-
-#ifndef BTN_TOOL_QUADTAP
-#define BTN_TOOL_QUADTAP	0x14f	/* Four fingers on trackpad */
-#define ABS_MT_TOUCH_MAJOR	0x30	/* Major axis of touching ellipse */
-#define ABS_MT_TOUCH_MINOR	0x31	/* Minor axis (omit if circular) */
-#define ABS_MT_WIDTH_MAJOR	0x32	/* Major axis of approaching ellipse */
-#define ABS_MT_WIDTH_MINOR	0x33	/* Minor axis (omit if circular) */
-#define ABS_MT_ORIENTATION	0x34	/* Ellipse orientation */
-#define ABS_MT_POSITION_X	0x35	/* Center X ellipse position */
-#define ABS_MT_POSITION_Y	0x36	/* Center Y ellipse position */
-#define ABS_MT_TOOL_TYPE	0x37	/* Type of touching device */
-#define ABS_MT_BLOB_ID		0x38	/* Group a set of packets as a blob */
-#define ABS_MT_TRACKING_ID	0x39	/* Unique ID of initiated contact */
-#define SYN_MT_REPORT		2
-#define MT_TOOL_FINGER		0
-#define MT_TOOL_PEN		1
-#endif
-
-/* includes available in 2.6.33 */
-#ifndef ABS_MT_PRESSURE
-#define ABS_MT_PRESSURE		0x3a	/* Pressure on contact area */
-#endif
-
-/* includes available in 2.6.36 */
-#ifndef ABS_MT_SLOT
-#define ABS_MT_SLOT		0x2f	/* MT slot being modified */
-#define MT_SLOT_ABS_EVENTS {	\
-	ABS_MT_TOUCH_MAJOR,	\
-	ABS_MT_TOUCH_MINOR,	\
-	ABS_MT_WIDTH_MAJOR,	\
-	ABS_MT_WIDTH_MINOR,	\
-	ABS_MT_ORIENTATION,	\
-	ABS_MT_POSITION_X,	\
-	ABS_MT_POSITION_Y,	\
-	ABS_MT_TOOL_TYPE,	\
-	ABS_MT_BLOB_ID,		\
-	ABS_MT_TRACKING_ID,	\
-	ABS_MT_PRESSURE,	\
-}
-#endif
-
-#define MT_ABS_SIZE		11	/* Size of MT_SLOT_ABS_EVENTS */
+#include <mtdev-mapping.h>
 
 #define DIM_FINGER 32
 #define DIM2_FINGER (DIM_FINGER * DIM_FINGER)
-
-/* event buffer size (must be a power of two) */
-#define DIM_EVENTS 512
 
 /* year-proof millisecond event time */
 typedef __u64 mstime_t;

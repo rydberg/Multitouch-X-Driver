@@ -4,20 +4,13 @@ EXTRAVERSION = beta1
 
 LIBRARY	= multitouch.so
 FDIS	= 11-multitouch.fdi
-MODULES = match mtdev src
+MODULES = src
 XMODULES = driver
 
-o_match	= match
-
-o_mtdev	= iobuf caps core
-
-o_src	= hwstate mtstate memory mtouch gestures
+o_src	= capabilities hwstate mtstate memory mtouch gestures
 
 o_driver= multitouch
 
-TARGETS	+= match/test
-TARGETS	+= mtdev/mapgen
-TARGETS	+= mtdev/test
 TARGETS	+= src/test
 
 OBJECTS	= $(addsuffix .o,\
@@ -33,7 +26,7 @@ TOBJ	= $(addprefix obj/,$(addsuffix .o,$(TARGETS)))
 TFDI	= $(addprefix fdi/,$(FDIS))
 OBJS	= $(addprefix obj/,$(OBJECTS))
 XOBJS	= $(addprefix obj/,$(XOBJECTS))
-LIBS	= -lm
+LIBS	= -lmtdev -lm
 
 DLIB	= usr/lib/xorg/modules/input
 DFDI	= usr/share/hal/fdi/policy/20thirdparty
@@ -52,7 +45,7 @@ bin/%:	obj/%.o $(OBJS)
 
 $(TLIB): $(OBJS) $(XOBJS)
 	@rm -f $(TLIB)
-	gcc -shared $(OBJS) $(XOBJS) -Wl,-soname -Wl,$(LIBRARY) -o $@
+	gcc -shared $(OBJS) $(XOBJS) $(LIBS) -Wl,-soname -Wl,$(LIBRARY) -o $@
 
 obj/%.o: %.c
 	@mkdir -p $(@D)

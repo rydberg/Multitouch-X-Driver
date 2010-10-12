@@ -34,8 +34,7 @@ int configure_mtouch(struct MTouch *mt, int fd)
 
 int open_mtouch(struct MTouch *mt, int fd)
 {
-	mtdev_init(&mt->dev, &mt->caps);
-	init_iobuf(&mt->buf);
+	mtdev_open(&mt->dev, fd);
 	init_hwstate(&mt->hs, &mt->caps);
 	init_mtstate(&mt->prev_state);
 	init_mtstate(&mt->state);
@@ -48,40 +47,19 @@ int open_mtouch(struct MTouch *mt, int fd)
 	return 0;
 }
 
-
-int get_mtouch(struct MTouch *mt, int fd, struct input_event* ev, int ev_max)
-{
-	const struct input_event *kev;
-	int count = 0;
-	while (count < ev_max) {
-		while (mtdev_empty(&mt->dev)) {
-			kev = get_iobuf_event(&mt->buf, fd);
-			if (!kev)
-				return count;
-			mtdev_put(&mt->dev, &mt->caps, kev);
-		}
-		mtdev_get(&mt->dev, &ev[count++]);
-	}
-	return count;
-}
-
 int close_mtouch(struct MTouch *mt, int fd)
 {
 	if (use_grab) {
 		int rc;
 		SYSCALL(rc = ioctl(fd, EVIOCGRAB, (pointer)0));
 	}
-	mtdev_destroy(&mt->dev);
+	mtdev_close(&mt->dev);
 	return 0;
 }
 
 int read_packet(struct MTouch *mt, int fd)
 {
-	struct input_event ev;
-	int ret;
-	while ((ret = get_mtouch(mt, fd, &ev, 1)) > 0)
-		if (hwstate_read(&mt->hs, &mt->caps, &ev))
-			break;
+	int ret = modify_hwstate(&mt->hs, &mt->dev, fd, &mt->caps);
 	if (ret <= 0)
 		return ret;
 	extract_mtstate(&mt->state, &mt->hs, &mt->caps);
@@ -97,7 +75,5 @@ int read_packet(struct MTouch *mt, int fd)
 
 int has_delayed_gestures(struct MTouch *mt, int fd)
 {
-	return mt->mem.wait &&
-		mtdev_empty(&mt->dev) &&
-		poll_iobuf(&mt->buf, fd, mt->mem.wait) == 0;
+	return mt->mem.wait && mtdev_idle(&mt->dev, fd, mt->mem.wait);
 }

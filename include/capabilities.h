@@ -19,18 +19,31 @@
  *
  **************************************************************************/
 
-#ifndef MATCHER_H
-#define MATCHER_H
-
-/**
- * Special implementation of the hungarian algorithm.
- * The maximum number of fingers matches a uint32.
- * Bitmasks are used extensively.
- */
+#ifndef CAPABILITIES_H
+#define CAPABILITIES_H
 
 #include "common.h"
+#include "button.h"
 
-void match_fingers(int index[DIM_FINGER], int A[DIM2_FINGER],
-		   int nrow, int ncol);
+struct Capabilities {
+	struct input_id devid;
+	char devname[32];
+	int has_left, has_middle, has_right;
+	int has_mtdata, has_ibt;
+	int has_slot;
+	int has_abs[MT_ABS_SIZE];
+	struct input_absinfo slot;
+	struct input_absinfo abs[MT_ABS_SIZE];
+};
+
+int read_capabilities(struct Capabilities *cap, int fd);
+int get_cap_xsize(const struct Capabilities *cap);
+int get_cap_ysize(const struct Capabilities *cap);
+int get_cap_wsize(const struct Capabilities *cap);
+
+int get_cap_xmid(const struct Capabilities *cap);
+int get_cap_ymid(const struct Capabilities *cap);
+
+void output_capabilities(const struct Capabilities *cap);
 
 #endif

@@ -119,13 +119,13 @@ static void update_pointers(struct Memory *m,
 			    const struct Capabilities *caps)
 {
 	const struct FingerState *f = state->finger;
-	int yclick = caps->abs[BIT_POSITION_Y].maximum - CLICK_AREA(caps);
+	int yclick = caps->abs[MTDEV_POSITION_Y].maximum - CLICK_AREA(caps);
 
 	int i;
 
 	if (state->nfinger < 2) {
 		m->pointing = m->fingers;
-		m->ybar = caps->abs[BIT_POSITION_Y].maximum;
+		m->ybar = caps->abs[MTDEV_POSITION_Y].maximum;
 		return;
 	}
 
