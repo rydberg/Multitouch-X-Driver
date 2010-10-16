@@ -27,7 +27,7 @@
 #endif
 
 /* these should be user-configurable at some point */
-static const float vscroll_fraction = 0.05;
+static const float vscroll_fraction = 0.025;
 static const float hscroll_fraction = 0.05;
 static const float vswipe_fraction = 0.25;
 static const float hswipe_fraction = 0.25;
