@@ -25,6 +25,7 @@
 #define TOUCH_SCALE(caps) (0.05 * caps->abs[MTDEV_TOUCH_MAJOR].maximum)
 
 #define THUMB_TOUCH(hw) (1.2 * hw->touch_minor)
+#define THUMB_TOUCH_SIZE(hw, caps) (0.14 * get_cap_xsize(caps))
 #define THUMB_WIDTH_TOUCH(hw) (4 * hw->touch_major)
 #define THUMB_WIDTH_WIDTH(hw) (1.2 * hw->width_minor)
 #define THUMB_WIDTH_SIZE(hw, caps) (0.25 * get_cap_xsize(caps))
@@ -56,10 +57,13 @@ static int is_thumb(const struct FingerState *hw,
 		    const struct Capabilities *caps)
 {
 	if (!caps->has_abs[MTDEV_TOUCH_MAJOR] ||
-	    !caps->has_abs[MTDEV_TOUCH_MINOR] ||
-	    !caps->has_abs[MTDEV_WIDTH_MAJOR] ||
-	    !caps->has_abs[MTDEV_WIDTH_MINOR])
+	    !caps->has_abs[MTDEV_TOUCH_MINOR])
 		return 0;
+	if (!caps->has_abs[MTDEV_WIDTH_MAJOR] ||
+	    !caps->has_abs[MTDEV_WIDTH_MINOR]) {
+		return  hw->touch_major > THUMB_TOUCH(hw) &&
+			hw->touch_major > THUMB_TOUCH_SIZE(hw, caps);
+	}
 	return	hw->touch_major > THUMB_TOUCH(hw) &&
 		hw->width_major > THUMB_WIDTH_TOUCH(hw) &&
 		hw->width_major > THUMB_WIDTH_WIDTH(hw) &&
