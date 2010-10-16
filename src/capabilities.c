@@ -57,6 +57,10 @@ static int has_mt_data(const struct Capabilities *cap)
 static int has_integrated_button(const struct Capabilities *cap)
 {
 	static const int bcm5974_vmask_ibt = 1;
+	/* magic trackpad */
+	if (cap->devid.vendor == 0x05ac && cap->devid.product == 0x030e)
+		return 1;
+	/* macbooks */
 	if (strcmp(cap->devname, "bcm5974"))
 		return 0;
 	return cap->devid.version & bcm5974_vmask_ibt;
