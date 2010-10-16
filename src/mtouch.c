@@ -21,7 +21,7 @@
 
 #include "mtouch.h"
 
-static const int use_grab = 1;
+static const int use_grab = 0;
 
 int configure_mtouch(struct MTouch *mt, int fd)
 {
