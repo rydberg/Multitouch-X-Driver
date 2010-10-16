@@ -21,7 +21,7 @@
 
 #include "memory.h"
 
-#define use_tapping 0
+#define use_tapping 1
 
 /* click area definition */
 #define CLICK_AREA(c) ((c->has_ibt ? 0.20 : 0.00) * get_cap_ysize(c))
