@@ -25,9 +25,9 @@
 #define TOUCH_SCALE(caps) (0.05 * caps->abs[MTDEV_TOUCH_MAJOR].maximum)
 
 #define THUMB_TOUCH(hw) (1.2 * hw->touch_minor)
-#define THUMB_WIDTH_TOUCH(hw) (3 * hw->touch_major)
+#define THUMB_WIDTH_TOUCH(hw) (4 * hw->touch_major)
 #define THUMB_WIDTH_WIDTH(hw) (1.2 * hw->width_minor)
-#define THUMB_WIDTH_SIZE(hw, caps) (0.15 * get_cap_xsize(caps))
+#define THUMB_WIDTH_SIZE(hw, caps) (0.25 * get_cap_xsize(caps))
 
 void init_mtstate(struct MTState *s)
 {
