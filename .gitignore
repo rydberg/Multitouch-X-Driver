@@ -1,3 +1,5 @@
+debian/files
+debian/xf86-input-multitouch*
 bin
 obj
 patches

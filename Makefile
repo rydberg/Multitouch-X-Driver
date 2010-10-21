@@ -1,9 +1,8 @@
 VERSION = 1
 PATCHLEVEL = 0
-EXTRAVERSION = beta1
+EXTRAVERSION = rc1
 
 LIBRARY	= multitouch.so
-FDIS	= 11-multitouch.fdi
 MODULES = src
 XMODULES = driver
 
@@ -23,13 +22,11 @@ XOBJECTS= $(addsuffix .o,\
 TBIN	= $(addprefix bin/,$(TARGETS))
 TLIB	= $(addprefix obj/,$(LIBRARY))
 TOBJ	= $(addprefix obj/,$(addsuffix .o,$(TARGETS)))
-TFDI	= $(addprefix fdi/,$(FDIS))
 OBJS	= $(addprefix obj/,$(OBJECTS))
 XOBJS	= $(addprefix obj/,$(XOBJECTS))
 LIBS	= -lmtdev -lm
 
 DLIB	= usr/lib/xorg/modules/input
-DFDI	= usr/share/hal/fdi/policy/20thirdparty
 
 INCLUDE = -Iinclude -I/usr/include/xorg -I/usr/include/pixman-1
 OPTS	= -O3 -fPIC
@@ -59,10 +56,8 @@ clean:
 	rm -rf bin obj
 
 distclean: clean
-	rm -rf debian/*.log debian/files
+	rm -rf debian/*.log debian/files debian/xf86-input-multitouch*
 
-install: $(TLIB) $(TFDI)
+install: $(TLIB)
 	install -d "$(DESTDIR)/$(DLIB)"
-	install -d "$(DESTDIR)/$(DFDI)"
 	install -m 755 $(TLIB) "$(DESTDIR)/$(DLIB)"
-	install -m 644 $(TFDI) "$(DESTDIR)/$(DFDI)"

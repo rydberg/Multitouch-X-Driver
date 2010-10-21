@@ -1,4 +1,4 @@
-multitouch Xorg driver
+xf86-input-multitouch Xorg driver
 
 * Install the debian package
 

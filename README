@@ -1,7 +1,7 @@
-Multitouch X Driver
+xf86-input-multitouch
 
-The Multitouch X Driver driver uses the kernel MT protocol to bring
-multi-touch gestures to the Linux desktop.
+The Multitouch X Driver provides gestures support for multitouch
+touchpads, in particular those with integrated button.
 
 ---
 Copyright (C) 2008 Henrik Rydberg <rydberg@euromail.se>
