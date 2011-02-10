@@ -76,6 +76,7 @@ void extract_mtstate(struct MTState *s,
 {
 	int i;
 	s->nfinger = 0;
+	s->thumb = 0;
 	foreach_bit(i, hs->used) {
 		if (!touching_finger(&hs->data[i], caps))
 			continue;
