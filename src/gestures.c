@@ -194,6 +194,7 @@ void extract_gestures(struct Gestures *gs, struct MTouch* mt)
  */
 void extract_delayed_gestures(struct Gestures *gs, struct MTouch* mt)
 {
+	memset(gs, 0, sizeof(struct Gestures));
 	mt->mem.wait = 0;
 
 	if (mt->mem.tpdown < mt->mem.tpup) {
