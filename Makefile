@@ -25,8 +25,9 @@ TOBJ	= $(addprefix obj/,$(addsuffix .o,$(TARGETS)))
 OBJS	= $(addprefix obj/,$(OBJECTS))
 XOBJS	= $(addprefix obj/,$(XOBJECTS))
 LIBS	= -lmtdev -lm
+LIBDIR  = usr/lib
 
-DLIB	= usr/lib/xorg/modules/input
+DLIB	= $(LIBDIR)/xorg/modules/input
 
 INCLUDE = -Iinclude -I/usr/include/xorg -I/usr/include/pixman-1
 OPTS	= -O3 -fPIC
