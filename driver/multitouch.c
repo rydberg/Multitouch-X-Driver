@@ -261,6 +261,14 @@ static void handle_gestures(LocalDevicePtr local,
 		foreach_bit(i, gs->tapmask)
 			tickle_button(local, i + 1);
 	}
+	if (GETBIT(gs->type, GS_VSWIPE4)) {
+		int step = 1 + vswipe_fraction * get_cap_ysize(caps);
+		button_scroll(local, 16, 17, &vswipe, step, gs->dy);
+	}
+	if (GETBIT(gs->type, GS_HSWIPE4)) {
+		int step = 1 + hswipe_fraction * get_cap_xsize(caps);
+		button_scroll(local, 18, 19, &hswipe, step, gs->dx);
+	}
 }
 
 /* called for each full received packet from the touchpad */

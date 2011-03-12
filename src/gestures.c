@@ -157,12 +157,16 @@ static void extract_movement(struct Gestures *gs, struct MTouch* mt)
 				SETBIT(gs->type, GS_HSCROLL);
 			if (nmove == 3)
 				SETBIT(gs->type, GS_HSWIPE);
+			if (nmove == 4)
+				SETBIT(gs->type, GS_HSWIPE4);
 		}
 		if (abs(gs->dy) > abs(gs->dx)) {
 			if (nmove == 2)
 				SETBIT(gs->type, GS_VSCROLL);
 			if (nmove == 3)
 				SETBIT(gs->type, GS_VSWIPE);
+			if (nmove == 4)
+				SETBIT(gs->type, GS_VSWIPE4);
 		}
 	}
 }
