@@ -1,6 +1,6 @@
 VERSION = 1
 PATCHLEVEL = 0
-EXTRAVERSION = rc2
+EXTRAVERSION = rc3
 
 LIBRARY	= multitouch.so
 MODULES = src
